@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>資格ノート</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script async defer src="https://accounts.google.com/gsi/client"></script>
+<style>
+  :root{
+    --bg:#FBFAF7;
+    --surface:#FFFFFF;
+    --surface-2:#F3EEE2;
+    --ink:#14213D;
+    --ink-soft:#5B6478;
+    --ink-faint:#94A0B4;
+    --accent:#C98A2C;
+    --accent-ink:#5A3D0F;
+    --accent-soft:#F1DFB8;
+    --success:#3F7D58;
+    --success-soft:#DCEAE0;
+    --danger:#B3452D;
+    --danger-soft:#F3DED4;
+    --border:#E4DFD3;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#11151F;
+      --surface:#1A1F2C;
+      --surface-2:#232A3A;
+      --ink:#F1EEE4;
+      --ink-soft:#AEB6C6;
+      --ink-faint:#6E7690;
+      --accent:#E0A94A;
+      --accent-ink:#2A1E0C;
+      --accent-soft:#3B2E15;
+      --success:#5AA679;
+      --success-soft:#1E3327;
+      --danger:#D97A5C;
+      --danger-soft:#3A241C;
+      --border:#2B3245;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#11151F;
+    --surface:#1A1F2C;
+    --surface-2:#232A3A;
+    --ink:#F1EEE4;
+    --ink-soft:#AEB6C6;
+    --ink-faint:#6E7690;
+    --accent:#E0A94A;
+    --accent-ink:#2A1E0C;
+    --accent-soft:#3B2E15;
+    --success:#5AA679;
+    --success-soft:#1E3327;
+    --danger:#D97A5C;
+    --danger-soft:#3A241C;
+    --border:#2B3245;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    height:100%;
+    margin:0;
+  }
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    flex-direction:column;
+    min-height:100%;
+  }
+  button, input, select, textarea{ font-family:inherit; }
+  button:disabled{ opacity:.5; cursor:default; }
+
+  header.app-top{
+    position:sticky;
+    top:0;
+    z-index:20;
+    padding:calc(env(safe-area-inset-top,0px) + 14px) 18px 12px;
+    background:var(--bg);
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+  }
+  header.app-top .brand{
+    font-size:19px;
+    font-weight:900;
+    letter-spacing:.02em;
+  }
+  header.app-top .brand small{
+    display:block;
+    font-size:11px;
+    font-weight:500;
+    color:var(--ink-faint);
+    margin-top:2px;
+    letter-spacing:.04em;
+  }
+  header.app-top .date-badge{
+    font-size:12px;
+    color:var(--ink-soft);
+    border:1px solid var(--border);
+    padding:5px 10px;
+    border-radius:2px;
+  }
+
+  main{
+    flex:1;
+    padding:16px 16px 96px;
+    max-width:520px;
+    width:100%;
+    margin:0 auto;
+  }
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  /* ---- shared elements ---- */
+  .section-title{
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-soft);
+    margin:22px 0 10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .section-title:first-child{ margin-top:2px; }
+  .section-title .rule{ flex:1; height:1px; background:var(--border); }
+
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-left:3px solid var(--accent);
+    padding:14px 16px;
+    margin-bottom:10px;
+  }
+  .empty-state{
+    border:1px dashed var(--border);
+    padding:28px 18px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:13.5px;
+    line-height:1.7;
+  }
+  .empty-state button{ margin-top:12px; }
+
+  .btn{
+    appearance:none;
+    border:1px solid var(--ink);
+    background:var(--ink);
+    color:var(--bg);
+    font-weight:700;
+    font-size:14px;
+    padding:11px 16px;
+    letter-spacing:.02em;
+    cursor:pointer;
+  }
+  .btn:active{ opacity:.8; }
+  .btn.secondary{
+    background:transparent;
+    color:var(--ink);
+    border:1px solid var(--border);
+  }
+  .btn.accent{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:var(--accent-ink);
+  }
+  .btn.block{ width:100%; }
+  .btn.small{ padding:7px 11px; font-size:12.5px; }
+
+  .chip{
+    display:inline-flex;
+    align-items:center;
+    font-size:11.5px;
+    font-weight:700;
+    color:var(--ink-soft);
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    padding:2px 8px;
+    white-space:nowrap;
+  }
+  .tier-chip{
+    display:inline-flex;
+    align-items:baseline;
+    gap:5px;
+    font-size:11px;
+    font-weight:700;
+    color:var(--accent-ink);
+    background:var(--accent-soft);
+    border:1px solid var(--accent);
+    padding:2px 8px;
+    white-space:nowrap;
+    margin-top:4px;
+  }
+  .tier-chip .amt{ font-size:12.5px; font-weight:900; }
+  .tier-note{
+    font-size:11px;
+    color:var(--ink-soft);
+    background:var(--surface-2);
+    border-left:2px solid var(--accent);
+    padding:5px 8px;
+    margin-top:4px;
+    line-height:1.6;
+  }
+
+  input[type=text], input[type=number], input[type=date], select, textarea{
+    width:100%;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--ink);
+    padding:10px 11px;
+    font-size:14.5px;
+  }
+  textarea{ resize:vertical; min-height:56px; }
+  label.field{ display:block; font-size:12px; font-weight:700; color:var(--ink-soft); margin:12px 0 5px; }
+  label.field:first-child{ margin-top:0; }
+
+  /* ---- bottom nav ---- */
+  nav.bottom-nav{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    z-index:30;
+    background:var(--surface);
+    border-top:1px solid var(--border);
+    display:flex;
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  nav.bottom-nav button{
+    flex:1;
+    background:none;
+    border:none;
+    padding:10px 4px 9px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    color:var(--ink-faint);
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:.02em;
+    cursor:pointer;
+  }
+  nav.bottom-nav button .ico{ font-size:19px; line-height:1; }
+  nav.bottom-nav button.active{ color:var(--accent); }
+
+  /* ---- home: qual card ---- */
+  .qual-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    margin-bottom:12px;
+    overflow:hidden;
+  }
+  .qual-card-head{
+    padding:13px 15px 11px;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    align-items:flex-start;
+  }
+  .qual-card-head .name{ font-size:15.5px; font-weight:700; line-height:1.4; }
+  .qual-card-head .cat{ font-size:11px; color:var(--ink-faint); margin-top:3px; }
+  .countdown{ text-align:right; flex-shrink:0; }
+  .countdown .num{ font-size:22px; font-weight:900; color:var(--accent); line-height:1; }
+  .countdown .unit{ font-size:10.5px; color:var(--ink-faint); font-weight:700; }
+  .progress-wrap{ padding:0 15px 13px; }
+  .progress-bar{ height:6px; background:var(--surface-2); position:relative; }
+  .progress-bar > i{ position:absolute; inset:0; width:0%; background:var(--success); display:block; }
+  .progress-meta{ display:flex; justify-content:space-between; font-size:11.5px; color:var(--ink-soft); margin-top:6px; }
+
+  /* ---- stopwatch ---- */
+  .stopwatch{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .stopwatch .time{ font-size:30px; font-weight:900; font-variant-numeric:tabular-nums; }
+
+  /* ---- log list ---- */
+  .log-item{
+    display:flex;
+    gap:12px;
+    padding:11px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .log-item:last-child{ border-bottom:none; }
+  .log-item .mins{
+    flex-shrink:0;
+    width:56px;
+    text-align:center;
+    font-weight:900;
+    font-size:16px;
+    color:var(--accent);
+  }
+  .log-item .mins span{ display:block; font-size:10px; font-weight:700; color:var(--ink-faint); }
+  .log-item .body{ flex:1; min-width:0; }
+  .log-item .body .top{ display:flex; justify-content:space-between; gap:8px; font-size:13px; font-weight:700; }
+  .log-item .body .note{ font-size:12.5px; color:var(--ink-soft); margin-top:3px; line-height:1.5; word-break:break-word; }
+  .log-item .body .date{ font-size:11px; color:var(--ink-faint); margin-top:4px; }
+  .log-item .del{ background:none;border:none;color:var(--ink-faint);font-size:16px;cursor:pointer;padding:0 2px; }
+
+  /* ---- calendar ---- */
+  .cal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .cal-head .label{ font-weight:700; font-size:15px; }
+  .cal-nav{ background:none; border:1px solid var(--border); width:30px; height:30px; font-size:15px; cursor:pointer; color:var(--ink); }
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+  .cal-dow{ text-align:center; font-size:10.5px; color:var(--ink-faint); font-weight:700; padding-bottom:4px; }
+  .cal-cell{
+    aspect-ratio:1/1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    font-weight:700;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .cal-cell.pad{ visibility:hidden; }
+  .cal-cell.today{ box-shadow:inset 0 0 0 2px var(--accent); }
+  .cal-cell.sel{ box-shadow:inset 0 0 0 2px var(--ink); }
+  .cal-cell.l1{ background:var(--accent-soft); color:var(--accent-ink); }
+  .cal-cell.l2{ background:var(--accent); color:var(--accent-ink); }
+  .cal-cell.l3{ background:var(--ink); color:var(--bg); }
+  .cal-legend{ display:flex; align-items:center; gap:5px; margin-top:10px; font-size:10.5px; color:var(--ink-faint); }
+  .cal-legend i{ width:12px; height:12px; display:inline-block; border:1px solid var(--border); }
+
+  /* ---- stat bars ---- */
+  .stat-row{ display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .stat-row .dlabel{ width:34px; font-size:11px; color:var(--ink-faint); font-weight:700; flex-shrink:0; }
+  .stat-row .track{ flex:1; height:14px; background:var(--surface-2); position:relative; }
+  .stat-row .track > i{ position:absolute; inset:0; width:0%; background:var(--accent); display:block; }
+  .stat-row .val{ width:44px; text-align:right; font-size:11.5px; font-weight:700; color:var(--ink-soft); flex-shrink:0; }
+
+  .kpi-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .kpi{ background:var(--surface); border:1px solid var(--border); padding:12px 14px; }
+  .kpi .n{ font-size:22px; font-weight:900; }
+  .kpi .l{ font-size:11px; color:var(--ink-faint); font-weight:700; margin-top:2px; }
+
+  /* ---- library / quals tab ---- */
+  .search-row{ display:flex; gap:8px; margin-bottom:10px; }
+  .cat-scroll{ display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:8px; -webkit-overflow-scrolling:touch; }
+  .cat-scroll::-webkit-scrollbar{ display:none; }
+  .cat-chip{
+    flex-shrink:0;
+    font-size:12px;
+    font-weight:700;
+    padding:6px 11px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--ink-soft);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .cat-chip.active{ background:var(--ink); color:var(--bg); border-color:var(--ink); }
+
+  .lib-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:11px 2px;
+    border-bottom:1px solid var(--border);
+  }
+  .lib-item .t{ font-size:13.5px; font-weight:500; line-height:1.5; }
+  .lib-item .c{ font-size:10.5px; color:var(--ink-faint); margin-top:2px; }
+  .lib-item button{
+    flex-shrink:0;
+    font-size:11.5px;
+    font-weight:700;
+    padding:7px 12px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .lib-item button.added{ background:var(--success); border-color:var(--success); color:#fff; }
+
+  .day-row{ display:flex; gap:4px; margin-top:5px; }
+  .day-btn, .status-btn{
+    flex:1;
+    text-align:center;
+    font-size:11.5px;
+    font-weight:700;
+    padding:7px 0;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .day-btn.active, .status-btn.active{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+
+  .my-qual-edit{
+    background:var(--surface);
+    border:1px solid var(--border);
+    padding:13px 15px;
+    margin-bottom:10px;
+  }
+  .my-qual-edit .t{ font-weight:700; font-size:14.5px; }
+  .my-qual-edit .c{ font-size:11px; color:var(--ink-faint); margin-bottom:8px; }
+  .my-qual-edit .row{ display:flex; gap:8px; }
+  .my-qual-edit .row > div{ flex:1; }
+  .my-qual-edit .remove{ margin-top:9px; }
+
+  .reminder-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    background:var(--danger-soft);
+    border-left:3px solid var(--danger);
+    padding:10px 12px;
+    margin-bottom:8px;
+    font-size:12.5px;
+  }
+  .reminder-item .txt b{ display:block; font-size:13px; }
+  .reminder-item button{
+    flex-shrink:0;
+    border:1px solid var(--border);
+    background:var(--surface);
+    padding:6px 10px;
+    font-size:11.5px;
+    font-weight:700;
+    cursor:pointer;
+  }
+
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.4);
+    display:none; align-items:flex-end; justify-content:center; z-index:50;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal-sheet{
+    background:var(--surface);
+    width:100%; max-width:520px;
+    max-height:88vh;
+    overflow-y:auto;
+    padding:18px 18px calc(22px + env(safe-area-inset-bottom,0px));
+    border-top:1px solid var(--border);
+  }
+  .modal-sheet h3{ margin:0 0 12px; font-size:16px; }
+  .modal-close-row{ display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
+
+  .toast{
+    position:fixed; left:50%; bottom:calc(84px + env(safe-area-inset-bottom,0px));
+    transform:translateX(-50%);
+    background:var(--ink); color:var(--bg);
+    font-size:12.5px; font-weight:700;
+    padding:9px 16px;
+    z-index:60;
+    opacity:0; pointer-events:none;
+    transition:opacity .2s ease;
+  }
+  .toast.show{ opacity:1; }
+</style>
+</head>
+<body>
+
+<header class="app-top">
+  <div class="brand">資格ノート<small>専門技能手当・自己啓発支援金 対象資格ライブラリ</small></div>
+  <div class="date-badge" id="todayBadge"></div>
+</header>
+
+<main>
+
+  <!-- HOME -->
+  <section class="view active" id="view-home">
+    <div id="reminderZone"></div>
+
+    <div class="kpi-grid" id="kpiZone"></div>
+
+    <div id="breakdownZone" class="panel" style="display:none;"></div>
+
+    <div id="allowanceZone" class="panel" style="display:none;"></div>
+
+    <div class="section-title"><span>取得中の資格</span><span class="rule"></span></div>
+    <div id="qualCardsZone"></div>
+
+    <div id="passedZone"></div>
+
+  </section>
+
+  <!-- LOG -->
+  <section class="view" id="view-log">
+    <div class="panel">
+      <div class="stopwatch">
+        <div class="time" id="swTime">00:00:00</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn secondary small" id="swReset">リセット</button>
+          <button class="btn accent small" id="swToggle">開始</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title"><span>学習を記録</span><span class="rule"></span></div>
+    <div class="panel" id="logFormZone"></div>
+
+    <div class="section-title"><span>最近の記録</span><span class="rule"></span></div>
+    <div class="panel" id="logListZone"></div>
+  </section>
+
+  <!-- CALENDAR -->
+  <section class="view" id="view-cal">
+    <div class="panel">
+      <div class="cal-head">
+        <button class="cal-nav" id="calPrev">‹</button>
+        <div class="label" id="calLabel"></div>
+        <button class="cal-nav" id="calNext">›</button>
+      </div>
+      <div class="cal-grid" id="calDow"></div>
+      <div class="cal-grid" id="calGrid" style="margin-top:4px;"></div>
+      <div class="cal-legend">
+        <span>少</span><i style="background:var(--surface);"></i><i class="l1" style="background:var(--accent-soft);border-color:var(--accent-soft);"></i><i class="l2" style="background:var(--accent);border-color:var(--accent);"></i><i class="l3" style="background:var(--ink);border-color:var(--ink);"></i><span>多</span>
+      </div>
+    </div>
+
+    <div class="section-title"><span id="calDayLabel">日付を選択</span><span class="rule"></span></div>
+    <div class="panel" id="calDayZone"><div style="font-size:12.5px;color:var(--ink-faint);">カレンダーの日付をタップすると、その日の記録が表示されます。</div></div>
+
+    <div class="section-title"><span>直近7日間</span><span class="rule"></span></div>
+    <div class="panel" id="weekStatZone"></div>
+  </section>
+
+  <!-- QUALS -->
+  <section class="view" id="view-quals">
+    <div class="section-title"><span>マイ資格</span><span class="rule"></span></div>
+    <div class="tier-note" style="margin-bottom:10px;">試験日を設定すると、Googleカレンダーに試験日と復習リマインダー（7日前・3日前 20:00）を登録できます。あらかじめ「Google連携の設定」でClient IDを設定してください。</div>
+    <div id="myQualsZone"></div>
+    <button class="btn secondary block" id="openCustomModal" style="margin-bottom:6px;">資格ライブラリにない資格を追加</button>
+
+    <div class="section-title"><span>資格ライブラリから追加</span><span class="rule"></span></div>
+    <div class="tier-note" style="margin-bottom:10px;">表示している手当額は、2026年6〜7月改定の資格一覧PDFを目視で読み取ったものです。表がかなり複雑なため、抜け・誤りがある可能性があります。正式な金額は必ず原本PDF・人事部にご確認ください。</div>
+    <div class="search-row">
+      <input type="text" id="libSearch" placeholder="資格名で検索">
+    </div>
+    <div class="cat-scroll" id="catScroll"></div>
+    <div class="panel" id="libListZone" style="max-height:none;"></div>
+
+    <div class="section-title"><span>Google連携の設定</span><span class="rule"></span></div>
+    <div class="panel" id="googleAuthPanel">
+      <div class="tier-note" style="margin-bottom:10px;">Googleカレンダー連携に使うOAuth Client IDをここで設定してください。設定方法が分からない場合は、Google Cloud ConsoleでOAuthクライアントIDを作成し、発行された「xxxxxxxxxx.apps.googleusercontent.com」を貼り付けてください。</div>
+      <label class="field">Google OAuth Client ID</label>
+      <input type="text" id="googleClientIdInput" placeholder="xxxxxxxxxx.apps.googleusercontent.com">
+      <button class="btn secondary block" id="saveGoogleClientIdBtn" style="margin-top:10px;">保存する</button>
+      <div id="googleClientIdStatus" style="font-size:11px;color:var(--ink-faint);margin-top:8px;"></div>
+    </div>
+
+    <div class="section-title"><span>データのバックアップ</span><span class="rule"></span></div>
+    <div class="panel">
+      <div style="font-size:12.5px;color:var(--ink-soft);line-height:1.6;margin-bottom:12px;">記録はこの端末のブラウザだけに保存されています。機種変更やブラウザのデータ削除で消えてしまうので、ときどき書き出しておくことをおすすめします。</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn secondary" style="flex:1;" id="exportDataBtn">書き出す</button>
+        <button class="btn secondary" style="flex:1;" id="importDataBtn">読み込む</button>
+      </div>
+      <input type="file" id="importDataFile" accept="application/json" style="display:none;">
+    </div>
+  </section>
+
+</main>
+
+<nav class="bottom-nav">
+  <button data-view="home" class="active"><span class="ico">🏠</span>ホーム</button>
+  <button data-view="log"><span class="ico">✏️</span>記録</button>
+  <button data-view="cal"><span class="ico">📅</span>カレンダー</button>
+  <button data-view="quals"><span class="ico">🎓</span>資格</button>
+</nav>
+
+<div class="modal-overlay" id="customModal">
+  <div class="modal-sheet">
+    <h3>カスタム資格を追加</h3>
+    <label class="field">資格名</label>
+    <input type="text" id="cmName" placeholder="例：〇〇検定 上級">
+    <label class="field">カテゴリ</label>
+    <select id="cmCat"></select>
+    <label class="field">試験日（任意）</label>
+    <input type="date" id="cmDate">
+    <label class="field">目標学習時間（任意・時間）</label>
+    <input type="number" id="cmHours" min="0" placeholder="例：60">
+    <div class="modal-close-row">
+      <button class="btn secondary" id="cmCancel">キャンセル</button>
+      <button class="btn accent" id="cmSave">追加する</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- data ---------------- */
+  var CATS = {
+    ipa:"情報処理技術者試験", cloud:"クラウド・ベンダー系", infra:"DB・インフラ・ネットワーク",
+    dev:"開発・プラットフォーム", fin:"経営・会計・財務", biz:"PM・ビジネススキル",
+    data:"データ・AI", web:"Web・マーケティング", lang:"語学", qa:"品質・テスト",
+    cad:"CAD・機械", edu:"教育・その他", custom:"カスタム"
+  };
+
+  // 手当区分：専門技能手当(月額, p1_*), Microsoft特別措置(月額, ms_*), 自己啓発支援金(一時金, sk_*)
+  // 2026年06月/07月改定版の資格一覧PDFを目視で再確認して対応づけたものです。
+  // 表がかなり複雑なため、抜け・見落としがある可能性があります。金額が関わる最終確認は必ず原本でお願いします。
+  var TIER_META = {
+    p1_1:{label:'専門技能手当 1群', amount:'月3万円', sub:'+合格時受験料', type:'monthly', yen:30000},
+    p1_2:{label:'専門技能手当 2群', amount:'月2万円', sub:'+合格時受験料', type:'monthly', yen:20000},
+    p1_3:{label:'専門技能手当 3群', amount:'月1万円', sub:'+合格時受験料', type:'monthly', yen:10000},
+    p1_4:{label:'専門技能手当 4群', amount:'月5千円', sub:'+合格時受験料', type:'monthly', yen:5000},
+    ms_1:{label:'MS特別措置 1群', amount:'月3万円', sub:'+合格時受験料', type:'monthly', yen:30000},
+    ms_2:{label:'MS特別措置 2群', amount:'月2万円', sub:'+合格時受験料', type:'monthly', yen:20000},
+    sk_A:{label:'自己啓発支援金 A群', amount:'一時金5万円', sub:'+合格時受験料', type:'lump', yen:50000},
+    sk_B:{label:'自己啓発支援金 B群', amount:'一時金3万円', sub:'+合格時受験料', type:'lump', yen:30000},
+    sk_C:{label:'自己啓発支援金 C群', amount:'一時金1万円', sub:'+合格時受験料', type:'lump', yen:10000},
+    sk_D:{label:'自己啓発支援金 D群', amount:'受験料のみ支給', sub:'', type:'lump', yen:0}
+  };
+  var MONTHLY_ALLOWANCE_CAP = 50000; // 重複支給の上限（PDF記載）
+
+  var LIBRARY = [
+    {id:'itpass',name:'ITパスポート',cat:'ipa', tier:'sk_D'},
+    {id:'seclv',name:'情報セキュリティマネジメント',cat:'ipa'},
+    {id:'fe',name:'基本情報技術者',cat:'ipa', tier:'p1_4'},
+    {id:'ap',name:'応用情報技術者',cat:'ipa', tier:'p1_3'},
+    {id:'st',name:'ITストラテジスト',cat:'ipa', tier:'p1_1'},
+    {id:'sa',name:'システムアーキテクト',cat:'ipa', tier:'p1_3'},
+    {id:'pm',name:'プロジェクトマネージャ',cat:'ipa', tier:'p1_2'},
+    {id:'nw',name:'ネットワークスペシャリスト',cat:'ipa', tier:'p1_3'},
+    {id:'db',name:'データベーススペシャリスト',cat:'ipa', tier:'p1_3'},
+    {id:'es',name:'エンベデッドシステムスペシャリスト',cat:'ipa', tier:'p1_3'},
+    {id:'sm',name:'ITサービスマネージャ',cat:'ipa', tier:'p1_3'},
+    {id:'au',name:'システム監査技術者',cat:'ipa', tier:'p1_1'},
+    {id:'sc',name:'情報処理安全確保支援士',cat:'ipa', tier:'p1_3'},
+
+    {id:'awscp',name:'AWS認定 クラウドプラクティショナー',cat:'cloud', tier:'sk_C'},
+    {id:'awsassoc',name:'AWS認定 アソシエイト',cat:'cloud', tier:'sk_B'},
+    {id:'awspro',name:'AWS認定 プロフェッショナル',cat:'cloud', tier:'p1_3'},
+    {id:'awsspec',name:'AWS認定 スペシャルティ',cat:'cloud', tier:'p1_3'},
+    {id:'az140',name:'Azure Virtual Desktop Specialty (AZ-140)',cat:'cloud', tier:'ms_2'},
+    {id:'ai102',name:'Azure AI Engineer Associate (AI-102)',cat:'cloud', tier:'ms_2'},
+    {id:'ai103',name:'Azure AI Apps and Agents Developer Associate (AI-103)',cat:'cloud', tier:'ms_2'},
+    {id:'dp300',name:'Azure Database Administrator Associate (DP-300)',cat:'cloud', tier:'ms_2'},
+    {id:'dp600',name:'Fabric Analytics Engineer Associate (DP-600)',cat:'cloud', tier:'ms_2'},
+    {id:'dp700',name:'Fabric Data Engineer Associate (DP-700)',cat:'cloud', tier:'ms_2'},
+    {id:'dp750',name:'Azure Databricks Data Engineer Associate (DP-750)',cat:'cloud', tier:'ms_2'},
+    {id:'dp800',name:'SQL AI Developer Associate (DP-800)',cat:'cloud', tier:'ms_2'},
+    {id:'dp420',name:'Azure Cosmos DB Developer Specialty (DP-420)',cat:'cloud', tier:'ms_2'},
+    {id:'pl300',name:'Power BI Data Analyst Associate (PL-300)',cat:'cloud', tier:'ms_2'},
+    {id:'sc100',name:'Cybersecurity Architect Expert (SC-100)',cat:'cloud', tier:'ms_2'},
+    {id:'sc300',name:'Identity and Access Administrator Associate (SC-300)',cat:'cloud', tier:'ms_2'},
+    {id:'sc401',name:'Information Security Administrator Associate (SC-401)',cat:'cloud', tier:'ms_2'},
+    {id:'az400',name:'DevOps Engineer Expert (AZ-400)',cat:'cloud', tier:'ms_2'},
+    {id:'az120',name:'Azure for SAP Workloads Specialty (AZ-120)',cat:'cloud', tier:'ms_2'},
+    {id:'ms102',name:'Microsoft 365 Administrator Expert (MS-102)',cat:'cloud', tier:'ms_1'},
+    {id:'ms721',name:'Collaboration Communications Systems Engineer Associate (MS-721)',cat:'cloud', tier:'ms_2'},
+    {id:'mb820',name:'Dynamics 365 Business Central Developer Associate (MB-820)',cat:'cloud', tier:'ms_2'},
+    {id:'ab100',name:'Agentic AI Business Solutions Architect (AB-100)',cat:'cloud', tier:'ms_2'},
+    {id:'ai300',name:'Machine Learning Operations Engineer Associate (AI-300)',cat:'cloud', tier:'ms_2'},
+    {id:'ghactions',name:'GitHub Actions (GH-200)',cat:'cloud', tier:'ms_2'},
+    {id:'ghadmin',name:'GitHub Administration (GH-100)',cat:'cloud', tier:'ms_2'},
+    {id:'ghsec',name:'GitHub Advanced Security (GH-500)',cat:'cloud', tier:'ms_2'},
+    {id:'ghcopilot',name:'GitHub Copilot (GH-300)',cat:'cloud', tier:'ms_2'},
+
+    {id:'oraBronze',name:'Oracle Master Bronze',cat:'infra', tier:'sk_C'},
+    {id:'oraSilver',name:'Oracle Master Silver',cat:'infra', tier:'sk_B'},
+    {id:'oraGold',name:'Oracle Master Gold',cat:'infra', tier:'p1_4'},
+    {id:'oraPlat',name:'Oracle Master Platinum',cat:'infra', tier:'p1_3'},
+    {id:'ccna',name:'CCNA',cat:'infra', tier:'sk_B'},
+    {id:'ccnp',name:'CCNP',cat:'infra', tier:'p1_3'},
+    {id:'ccie',name:'CCIE',cat:'infra', tier:'p1_2'},
+    {id:'lpic1',name:'LPIC/LinuC レベル1',cat:'infra', tier:'sk_C'},
+    {id:'lpic2',name:'LPIC/LinuC レベル2',cat:'infra', tier:'sk_B'},
+    {id:'lpic3',name:'LPIC/LinuC レベル3',cat:'infra', tier:'sk_A'},
+    {id:'ossdbs',name:'OSS-DB Silver',cat:'infra', tier:'sk_B'},
+    {id:'ossdbg',name:'OSS-DB Gold',cat:'infra', tier:'sk_A'},
+    {id:'outsystems',name:'OutSystems認定資格',cat:'infra'},
+    {id:'itil',name:'ITIL',cat:'infra'},
+
+    {id:'sfadmin',name:'Salesforce認定 Administrator',cat:'dev', tier:'sk_C'},
+    {id:'sfdev',name:'Salesforce認定 Platformデベロッパー',cat:'dev', tier:'sk_C'},
+    {id:'sfappbuilder',name:'Salesforce認定 Platformアプリケーションビルダー',cat:'dev', tier:'sk_C'},
+    {id:'sfsales',name:'Salesforce認定 Sales Cloudコンサルタント',cat:'dev', tier:'sk_C'},
+    {id:'sfservice',name:'Salesforce認定 Service Cloudコンサルタント',cat:'dev', tier:'sk_C'},
+    {id:'sap',name:'SAP認定資格',cat:'dev', tier:'p1_4'},
+    {id:'ocjpb',name:'Oracle認定Javaプログラマ Bronze',cat:'dev'},
+    {id:'ocjps',name:'Oracle認定Javaプログラマ Silver',cat:'dev', tier:'sk_C'},
+    {id:'ocjpg',name:'Oracle認定Javaプログラマ Gold',cat:'dev', tier:'sk_B'},
+    {id:'javaee7',name:'Java EE 7 Application Associate認定資格',cat:'dev', tier:'sk_B'},
+    {id:'phpsho',name:'PHP技術者認定 初級',cat:'dev'},
+    {id:'phpjo',name:'PHP技術者認定 上級',cat:'dev', tier:'sk_A'},
+    {id:'snowcsa',name:'ServiceNow Certified System Administrator',cat:'dev'},
+    {id:'snowcad',name:'ServiceNow Certified Application Developer',cat:'dev'},
+    {id:'snowcis',name:'ServiceNow Certified Implementation Specialist',cat:'dev', tier:'p1_3'},
+    {id:'uml',name:'UML技術者認定',cat:'dev'},
+    {id:'comptiaa',name:'CompTIA A+',cat:'dev', tier:'sk_D'},
+    {id:'comptian',name:'CompTIA Network+',cat:'dev', tier:'sk_C'},
+    {id:'comptias',name:'CompTIA Security+',cat:'dev', tier:'sk_B'},
+    {id:'comptiasv',name:'CompTIA Server+',cat:'dev', tier:'sk_B'},
+    {id:'comptiap',name:'CompTIA Project+',cat:'dev', tier:'sk_B'},
+    {id:'ocup',name:'OCUP (OMG Certified UML Professional)',cat:'dev'},
+    {id:'ocres',name:'OCRES (組込みシステム技術者認定)',cat:'dev'},
+    {id:'tableau',name:'Tableau認定資格',cat:'dev'},
+    {id:'iot',name:'IoT検定/IoTシステム技術検定',cat:'dev'},
+    {id:'mcpc',name:'MCPC認定資格',cat:'dev'},
+
+    {id:'cpa',name:'公認会計士',cat:'fin', tier:'p1_1'},
+    {id:'tax',name:'税理士',cat:'fin', tier:'p1_1'},
+    {id:'smec',name:'中小企業診断士',cat:'fin', tier:'p1_1'},
+    {id:'boki1',name:'日商簿記1級',cat:'fin', tier:'sk_A'},
+    {id:'boki2',name:'日商簿記2級',cat:'fin', tier:'sk_C'},
+    {id:'bizkaikei2',name:'ビジネス会計検定2級',cat:'fin', tier:'sk_C'},
+    {id:'bizkaikei3',name:'ビジネス会計検定3級',cat:'fin'},
+    {id:'imapro',name:'IMA Professional検定（CMA）',cat:'fin', tier:'sk_C'},
+    {id:'imasta',name:'IMA Standard資格',cat:'fin', tier:'sk_D'},
+    {id:'jacfopro',name:'JACFO プロフェッショナルCFO',cat:'fin', tier:'sk_A'},
+    {id:'jacfosta',name:'JACFO スタンダードCFO',cat:'fin', tier:'sk_B'},
+    {id:'jacfofass',name:'JACFO FASS',cat:'fin', tier:'sk_C'},
+
+    {id:'pmp',name:'PMP',cat:'biz', tier:'p1_3'},
+    {id:'itc',name:'ITコーディネータ',cat:'biz', tier:'p1_1'},
+    {id:'cbap',name:'CBAP（IIBA）',cat:'biz', tier:'p1_1'},
+    {id:'bizcareer',name:'ビジネスキャリア検定',cat:'biz'},
+    {id:'houmu2',name:'ビジネス実務法務検定2級',cat:'biz', tier:'sk_C'},
+    {id:'houmu3',name:'ビジネス実務法務検定3級',cat:'biz'},
+    {id:'copyright',name:'ビジネス著作権検定 初級',cat:'biz', tier:'sk_D'},
+    {id:'mental1',name:'メンタルヘルス・マネジメント検定Ⅰ種',cat:'biz', tier:'sk_B'},
+    {id:'mental2',name:'メンタルヘルス・マネジメント検定Ⅱ種',cat:'biz', tier:'sk_C'},
+    {id:'mental3',name:'メンタルヘルス・マネジメント検定Ⅲ種',cat:'biz'},
+    {id:'harassmgr',name:'ハラスメントマネージャー',cat:'biz', tier:'sk_C'},
+    {id:'harasscons',name:'認定ハラスメント相談員',cat:'biz', tier:'sk_C'},
+    {id:'bizmanager',name:'ビジネスマネジャー検定',cat:'biz', tier:'sk_C'},
+
+    {id:'stat1',name:'統計検定 1級',cat:'data', tier:'sk_A'},
+    {id:'statp1',name:'統計検定 準1級',cat:'data', tier:'sk_A'},
+    {id:'stat2',name:'統計検定 2級',cat:'data', tier:'sk_B'},
+    {id:'stat3',name:'統計検定 3級',cat:'data', tier:'sk_C'},
+    {id:'stat4',name:'統計検定 4級',cat:'data'},
+    {id:'dsken',name:'データサイエンティスト検定',cat:'data'},
+    {id:'gken',name:'G検定（ジェネラリスト検定）',cat:'data'},
+    {id:'eshikaku',name:'E資格（エンジニア資格）',cat:'data', tier:'sk_B'},
+    {id:'genai',name:'生成AIパスポート',cat:'data'},
+
+    {id:'webkaiseki_s',name:'ウェブ解析士 初級',cat:'web', tier:'sk_D'},
+    {id:'webkaiseki_j',name:'上級ウェブ解析士',cat:'web', tier:'p1_4'},
+    {id:'gaiq',name:'Googleアナリティクス個人認定資格（GAIQ）',cat:'web', tier:'sk_D'},
+
+    {id:'toeic',name:'TOEIC',cat:'lang', scoreNote:'自己啓発支援金：850点以上=A群(5万円) / 750点以上=B群(3万円) / 650点以上=C群(1万円)'},
+    {id:'eiken',name:'実用英語技能検定（英検）',cat:'lang', scoreNote:'自己啓発支援金：1級=A群(5万円) / 準1級=B群(3万円) / 2級=C群(1万円)'},
+
+    {id:'jstqbf',name:'JSTQB Foundation Level',cat:'qa', tier:'sk_C'},
+    {id:'jstqba',name:'JSTQB Advanced Level',cat:'qa', tier:'sk_B'},
+
+    {id:'cae_solid1',name:'計算力学技術者（固体力学）1級',cat:'cad', tier:'sk_A'},
+    {id:'cae_solid2',name:'計算力学技術者（固体力学）2級',cat:'cad', tier:'sk_B'},
+    {id:'cae_fluid1',name:'計算力学技術者（熱流体力学）1級',cat:'cad', tier:'sk_A'},
+    {id:'cae_fluid2',name:'計算力学技術者（熱流体力学）2級',cat:'cad', tier:'sk_B'},
+    {id:'cae_vib1',name:'計算力学技術者（振動分野）1級',cat:'cad', tier:'sk_A'},
+    {id:'cae_vib2',name:'計算力学技術者（振動分野）2級',cat:'cad', tier:'sk_B'},
+    {id:'cad3d1',name:'3次元CAD利用技術者 1級',cat:'cad', tier:'sk_A'},
+    {id:'cad3dp1',name:'3次元CAD利用技術者 準1級',cat:'cad', tier:'sk_B'},
+    {id:'cad3d2',name:'3次元CAD利用技術者 2級',cat:'cad', tier:'sk_C'},
+    {id:'cad3db',name:'3次元CAD利用技術者 基礎',cat:'cad'},
+
+    {id:'edu1',name:'教育情報化コーディネータ 1級',cat:'edu'},
+    {id:'edu2',name:'教育情報化コーディネータ 2級',cat:'edu', tier:'p1_3'},
+    {id:'edu3',name:'教育情報化コーディネータ 3級',cat:'edu', tier:'sk_D'},
+    {id:'rpa',name:'RPA技術者検定',cat:'edu'},
+    {id:'ictsupport',name:'ICT支援員上級認定試験',cat:'edu', tier:'p1_4'}
+  ];
+
+  /* ---------------- storage ---------------- */
+  var STORE_QUALS = 'sn_myquals_v1';
+  var STORE_LOGS = 'sn_logs_v1';
+  var STORE_SETTINGS = 'sn_settings_v1';
+
+  function loadJSON(key, fallback, validate){
+    try{
+      var raw = localStorage.getItem(key);
+      if(!raw) return fallback;
+      var parsed = JSON.parse(raw);
+      if(validate && !validate(parsed)) return fallback;
+      return parsed;
+    }catch(e){ return fallback; }
+  }
+  function saveJSON(key, val){
+    try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+  }
+  function isPlainObject(v){ return !!v && typeof v==='object' && !Array.isArray(v); }
+  function isValidRecordArray(v){
+    return Array.isArray(v) && v.every(function(item){ return isPlainObject(item) && typeof item.id==='string' && item.id.length>0; });
+  }
+
+  var myQuals = loadJSON(STORE_QUALS, [], isValidRecordArray); // {id, libId(optional), name, cat, examDate, targetHours, addedAt, status, materials, studyPlan, gcal}
+  var logs = loadJSON(STORE_LOGS, [], isValidRecordArray);     // {id, qualId, date(YYYY-MM-DD), minutes, note, review, reviewStage, nextReview}
+  var settings = loadJSON(STORE_SETTINGS, { lastMilestone: 0 }, isPlainObject);
+
+  function persist(){ saveJSON(STORE_QUALS, myQuals); saveJSON(STORE_LOGS, logs); saveJSON(STORE_SETTINGS, settings); }
+
+  /* ---------------- utils ---------------- */
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+  function pad(n){ return n<10 ? '0'+n : ''+n; }
+  function todayStr(){ var d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function parseDate(s){ var p=s.split('-'); return new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2])); }
+  function daysBetween(a,b){ var MS=86400000; var da=new Date(a.getFullYear(),a.getMonth(),a.getDate()); var db=new Date(b.getFullYear(),b.getMonth(),b.getDate()); return Math.round((db-da)/MS); }
+  function fmtDateJP(s){ var p=s.split('-'); return p[1]+'/'+p[2]; }
+  function esc(s){ return (s||'').replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._h);
+    toast._h = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+  }
+
+  /* ---------------- spaced repetition (簡易忘却曲線) ---------------- */
+  var REVIEW_INTERVALS = [1,3,7,14,30]; // 復習するたびに間隔を伸ばす（日）
+
+  function qualById(id){ for(var i=0;i<myQuals.length;i++) if(myQuals[i].id===id) return myQuals[i]; return null; }
+  function tierBadgeHTML(item){
+    if(!item) return '';
+    if(item.tier && TIER_META[item.tier]){
+      var m = TIER_META[item.tier];
+      return '<div class="tier-chip">'+esc(m.label)+'<span class="amt">'+esc(m.amount)+'</span></div>';
+    }
+    if(item.scoreNote){
+      return '<div class="tier-note">'+esc(item.scoreNote)+'</div>';
+    }
+    return '';
+  }
+  function totalMinutesFor(qualId){
+    var t=0;
+    for(var i=0;i<logs.length;i++) if(logs[i].qualId===qualId) t+=logs[i].minutes;
+    return t;
+  }
+  function isLiveLog(l){ return !!qualById(l.qualId); } // 資格が削除されたログは集計から除外する
+
+  var DOW_LABELS = ['日','月','火','水','木','金','土'];
+  var DOW_CODES = ['SU','MO','TU','WE','TH','FR','SA'];
+
+  /* ---------------- Google Calendar 連携ユーティリティ ---------------- */
+  function addDaysStr(dateStr, days){
+    var d = parseDate(dateStr);
+    d.setDate(d.getDate()+days);
+    return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  }
+  function calendarErrorMessage(err){
+    var code = err && err.code;
+    var map = {
+      no_client_id: 'Google連携の設定（Client ID）がまだされていません。資格タブの「Google連携の設定」から設定してください。',
+      gis_not_loaded: 'Googleログインの読み込みに失敗しました。通信環境を確認して再読み込みしてください。',
+      google_auth_failed: 'Googleへのログインが完了しませんでした。もう一度お試しください。',
+      http_401: 'Googleの認証が切れました。もう一度連携をお試しください。',
+      http_403: 'Googleカレンダーへのアクセスが許可されていません（権限不足）。',
+      http_404: '対象の予定が見つかりませんでした（すでに削除された可能性があります）。'
+    };
+    return (code && map[code]) || (err && err.message) || '同期に失敗しました。時間をおいて再試行してください。';
+  }
+
+  /* ---------------- Google Calendar 直接連携（GitHub Pages等）----------------
+     OAuth（Google Identity Services）+ Calendar REST APIで直接やり取りする。
+     呼び出し側は getCalendarClient() が返す create/update/del/list の共通インターフェースだけを使う。 */
+  var GOOGLE_CLIENT_ID_KEY = 'sn_google_client_id_v1';
+  var GOOGLE_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
+  var googleAccessToken = null;
+  var googleTokenExpiry = 0;
+  var googleAuthInFlight = null; // 認証リクエストが同時に複数走ってポップアップが二重に開くのを防ぐ
+
+  function getGoogleClientId(){ try{ return localStorage.getItem(GOOGLE_CLIENT_ID_KEY) || ''; }catch(e){ return ''; } }
+  function setGoogleClientId(id){ try{ localStorage.setItem(GOOGLE_CLIENT_ID_KEY, id); }catch(e){} }
+
+  function ensureGoogleAuth(){
+    if(googleAccessToken && Date.now() < googleTokenExpiry - 60000){
+      return Promise.resolve(googleAccessToken);
+    }
+    if(googleAuthInFlight) return googleAuthInFlight; // 進行中の認証があればそれに相乗りする
+
+    var clientId = getGoogleClientId();
+    if(!clientId) return Promise.reject({code:'no_client_id'});
+    if(typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2){
+      return Promise.reject({code:'gis_not_loaded'});
+    }
+    googleAuthInFlight = new Promise(function(resolve, reject){
+      try{
+        var tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: GOOGLE_SCOPE,
+          callback: function(resp){
+            if(!resp || resp.error){ reject({code:'google_auth_failed'}); return; }
+            googleAccessToken = resp.access_token;
+            googleTokenExpiry = Date.now() + ((resp.expires_in||3600)*1000);
+            resolve(googleAccessToken);
+          }
+        });
+        tokenClient.requestAccessToken({ prompt: '' });
+      }catch(e){
+        reject({code:'google_auth_failed'});
+      }
+    });
+    googleAuthInFlight.then(function(){ googleAuthInFlight = null; }, function(){ googleAuthInFlight = null; });
+    return googleAuthInFlight;
+  }
+
+  async function googleApiFetch(method, path, body){
+    var token = await ensureGoogleAuth();
+    var res = await fetch('https://www.googleapis.com/calendar/v3'+path, {
+      method: method,
+      headers: { 'Authorization':'Bearer '+token, 'Content-Type':'application/json' },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    if(!res.ok){
+      var errBody = null;
+      try{ errBody = await res.json(); }catch(e){}
+      if(res.status===401){ googleAccessToken = null; googleTokenExpiry = 0; }
+      throw { code:'http_'+res.status, message: (errBody && errBody.error && errBody.error.message) || ('HTTP '+res.status) };
+    }
+    if(res.status===204) return null;
+    return res.json();
+  }
+
+  function toGoogleEventBody(input){
+    var body = { summary: input.summary, description: input.description };
+    if(input.allDay){
+      body.start = { date: input.startTime };
+      body.end = { date: input.endTime };
+    }else{
+      body.start = { dateTime: input.startTime, timeZone: input.timeZone || 'Asia/Tokyo' };
+      body.end = { dateTime: input.endTime, timeZone: input.timeZone || 'Asia/Tokyo' };
+    }
+    if(input.recurrenceData) body.recurrence = input.recurrenceData;
+    if(input.overrideReminders) body.reminders = { useDefault:false, overrides: input.overrideReminders };
+    return body;
+  }
+  function fromGoogleEvent(ev){
+    if(!ev) return ev;
+    return {
+      id: ev.id,
+      summary: ev.summary,
+      description: ev.description,
+      start: ev.start, end: ev.end,
+      recurringEventId: ev.recurringEventId
+    };
+  }
+
+  var directCalendarClient = {
+    async create(input){
+      var ev = await googleApiFetch('POST','/calendars/primary/events', toGoogleEventBody(input));
+      return { payload: fromGoogleEvent(ev) };
+    },
+    async update(input){
+      var id = input.eventId;
+      var body = toGoogleEventBody(input);
+      var ev = await googleApiFetch('PATCH','/calendars/primary/events/'+encodeURIComponent(id), body);
+      return { payload: fromGoogleEvent(ev) };
+    },
+    async del(input){
+      await googleApiFetch('DELETE','/calendars/primary/events/'+encodeURIComponent(input.eventId));
+      return { payload: { id: input.eventId, status:'cancelled' } };
+    },
+    async list(input){
+      var params = new URLSearchParams();
+      params.set('timeMin', new Date(input.startTime).toISOString());
+      params.set('timeMax', new Date(input.endTime).toISOString());
+      params.set('singleEvents', 'true');
+      var res = await googleApiFetch('GET','/calendars/primary/events?'+params.toString());
+      var events = (res && res.items || []).map(fromGoogleEvent);
+      return { payload: { events: events } };
+    }
+  };
+
+  async function getCalendarClient(){
+    if(getGoogleClientId()) return directCalendarClient;
+    return null;
+  }
+
+  /* ---------------- Google Calendar sync ---------------- */
+  async function syncQualToCalendar(qid, btn){
+    var q = qualById(qid);
+    if(!q) return;
+    if(!q.examDate){ toast('先に試験日を設定してください'); return; }
+    if(btn){ if(btn.disabled) return; btn.disabled = true; }
+    var client;
+    try{ client = await getCalendarClient(); }catch(e){ client = null; }
+    if(!client){ toast('Googleカレンダー連携が使えません（未設定/未接続です）'); if(btn) btn.disabled=false; return; }
+
+    toast('Googleカレンダーに登録中…');
+    try{
+      var tz = (Intl && Intl.DateTimeFormat) ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'Asia/Tokyo';
+
+      var examInput = {
+        summary: '【資格試験】'+q.name,
+        startTime: q.examDate,
+        endTime: addDaysStr(q.examDate,1),
+        allDay: true,
+        description: '資格ノートアプリから登録',
+        overrideReminders: [{method:'popup',minutes:1440},{method:'popup',minutes:10080}]
+      };
+      var examId = q.gcal && q.gcal.examEventId;
+      if(examId){
+        var upd = Object.assign({eventId: examId}, examInput);
+        await client.update(upd);
+      }else{
+        var examResult = await client.create(examInput);
+        examId = examResult && examResult.payload && examResult.payload.id;
+      }
+
+      var reviewIds = (q.gcal && q.gcal.reviewEventIds) || {};
+      var offsets = [7,3];
+      for(var i=0;i<offsets.length;i++){
+        var off = offsets[i];
+        var rDate = addDaysStr(q.examDate, -off);
+        var input = {
+          summary:'【復習リマインダー】'+q.name+'（試験まであと'+off+'日）',
+          startTime: rDate+'T20:00:00',
+          endTime: rDate+'T20:30:00',
+          timeZone: tz,
+          description:'資格ノートアプリから登録',
+          overrideReminders:[{method:'popup',minutes:30}]
+        };
+        var key = 'r'+off;
+        var res;
+        if(reviewIds[key]){
+          var uinput = Object.assign({eventId: reviewIds[key]}, input);
+          res = await client.update(uinput);
+        }else{
+          res = await client.create(input);
+          var rid = res && res.payload && res.payload.id;
+          if(rid) reviewIds[key] = rid;
+        }
+      }
+
+      q.gcal = Object.assign({}, q.gcal, { examEventId: examId, reviewEventIds: reviewIds, examSyncedAt: Date.now() });
+      persist();
+      toast('Googleカレンダーに登録しました');
+      renderQuals(); // 再描画でボタンごと作り直されるため有効化し直しは不要
+    }catch(err){
+      toast(calendarErrorMessage(err));
+      if(btn) btn.disabled = false;
+    }
+  }
+  async function markStudyDoneOnCalendar(qualId, dateStr){
+    var q = qualById(qualId);
+    if(!q || !q.gcal || !q.gcal.studyEventId) return; // 学習予定が連携されている資格のみ対象
+    var client;
+    try{ client = await getCalendarClient(); }catch(e){ client = null; }
+    if(!client) return;
+    try{
+      var tz = (Intl && Intl.DateTimeFormat) ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'Asia/Tokyo';
+      var res = await client.list({
+        startTime: dateStr+'T00:00:00',
+        endTime: dateStr+'T23:59:59',
+        timeZone: tz
+      });
+      var events = (res && res.payload && res.payload.events) || [];
+      var studyId = q.gcal.studyEventId;
+      // 同じ繰り返し予定の「その日の1回分」を、マスターIDの一致で確実に見つける
+      // （文字列一致に頼ると日本語の資格名でうまく引っかからないことがあるため）
+      var target = events.find(function(e){ return e.id===studyId || e.recurringEventId===studyId; })
+        || events.find(function(e){ return e.summary && e.summary.indexOf('【学習予定】'+q.name)>=0; });
+      if(!target) return; // その日に予定がなければ何もしない
+      var totalMin = 0;
+      logs.forEach(function(l){ if(l.qualId===qualId && l.date===dateStr) totalMin += l.minutes; });
+      await client.update({
+        eventId: target.id,
+        summary: '✅【学習実績】'+q.name+'（'+totalMin+'分）',
+        description: (target.description||'')+'\n\n✅ 実績：'+totalMin+'分 学習しました。（資格ノートアプリ）'
+      });
+    }catch(e){ /* カレンダー反映は失敗しても学習記録自体には影響させない */ }
+  }
+
+  async function syncStudyPlanToCalendar(qid, btn){
+    var q = qualById(qid);
+    if(!q) return;
+    if(!q.examDate){ toast('先に試験日を設定してください（試験日までの繰り返し予定として登録します）'); return; }
+    var plan = q.studyPlan;
+    if(!plan || !plan.days || plan.days.length===0){ toast('曜日を選択してください'); return; }
+    if(btn){ if(btn.disabled) return; btn.disabled = true; }
+    var client;
+    try{ client = await getCalendarClient(); }catch(e){ client = null; }
+    if(!client){ toast('Googleカレンダー連携が使えません（未設定/未接続です）'); if(btn) btn.disabled=false; return; }
+
+    toast('学習予定を登録中…');
+    try{
+      // 既存の学習予定があれば作り直す（繰り返しルールの変更に対応するため）
+      if(q.gcal && q.gcal.studyEventId){
+        try{ await client.del({eventId: q.gcal.studyEventId}); }catch(e){ /* best effort */ }
+      }
+      var tz = (Intl && Intl.DateTimeFormat) ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'Asia/Tokyo';
+      var timeParts = (plan.time||'21:00').split(':');
+      var hh = parseInt(timeParts[0],10), mm = parseInt(timeParts[1],10);
+      var durMin = plan.minutes || 30;
+
+      // 直近で選択曜日に当てはまる日をDTSTARTの起点にする
+      var anchor = new Date();
+      var anchorDate = null;
+      for(var i=0;i<8;i++){
+        var cand = new Date(anchor.getFullYear(),anchor.getMonth(),anchor.getDate()+i);
+        if(plan.days.indexOf(cand.getDay())>=0){ anchorDate = cand; break; }
+      }
+      if(!anchorDate) anchorDate = new Date(anchor.getFullYear(),anchor.getMonth(),anchor.getDate());
+
+      var startDateObj = new Date(anchorDate.getFullYear(),anchorDate.getMonth(),anchorDate.getDate(),hh,mm,0);
+      var endDateObj = new Date(startDateObj.getTime() + durMin*60000); // 分をまたぐ場合は日付も繰り上がる
+      function fmtLocalDT(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes())+':00'; }
+      var startTime = fmtLocalDT(startDateObj);
+      var endTime = fmtLocalDT(endDateObj);
+
+      var byday = plan.days.map(function(d){ return DOW_CODES[d]; }).join(',');
+      var untilStr = q.examDate.replace(/-/g,'')+'T235900Z';
+
+      var input = {
+        summary: '【学習予定】'+q.name,
+        startTime: startTime,
+        endTime: endTime,
+        timeZone: tz,
+        recurrenceData: ['RRULE:FREQ=WEEKLY;BYDAY='+byday+';UNTIL='+untilStr],
+        description: '資格ノートアプリから登録',
+        overrideReminders: [{method:'popup',minutes:10}]
+      };
+      var res = await client.create(input);
+      var id = res && res.payload && res.payload.id;
+
+      q.gcal = q.gcal || {};
+      q.gcal.studyEventId = id;
+      q.gcal.studySyncedAt = Date.now();
+      persist();
+      toast('学習予定をカレンダーに登録しました');
+      renderQuals(); // 再描画でボタンごと作り直されるため有効化し直しは不要
+    }catch(err){
+      toast(calendarErrorMessage(err));
+      if(btn) btn.disabled = false;
+    }
+  }
+  async function deleteQualCalendarEvents(q){
+    if(!q || !q.gcal) return;
+    var client;
+    try{ client = await getCalendarClient(); }catch(e){ client = null; }
+    if(!client) return;
+    var ids = [];
+    if(q.gcal.examEventId) ids.push(q.gcal.examEventId);
+    if(q.gcal.studyEventId) ids.push(q.gcal.studyEventId);
+    if(q.gcal.reviewEventIds){ Object.keys(q.gcal.reviewEventIds).forEach(function(k){ ids.push(q.gcal.reviewEventIds[k]); }); }
+    for(var i=0;i<ids.length;i++){
+      try{ await client.del({eventId: ids[i]}); }catch(e){ /* best effort */ }
+    }
+  }
+
+  /* ---------------- date badge ---------------- */
+  (function(){
+    var d = new Date();
+    var w = ['日','月','火','水','木','金','土'][d.getDay()];
+    document.getElementById('todayBadge').textContent = (d.getMonth()+1)+'月'+d.getDate()+'日（'+w+'）';
+  })();
+
+  /* ---------------- tab nav ---------------- */
+  var views = {
+    home: document.getElementById('view-home'),
+    log: document.getElementById('view-log'),
+    cal: document.getElementById('view-cal'),
+    quals: document.getElementById('view-quals')
+  };
+  var navButtons = document.querySelectorAll('.bottom-nav button');
+  function showView(name){
+    Object.keys(views).forEach(function(k){ views[k].classList.toggle('active', k===name); });
+    navButtons.forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-view')===name); });
+    if(name==='home') renderHome();
+    if(name==='log') renderLog();
+    if(name==='cal') renderCalendar();
+    if(name==='quals') renderQuals();
+    window.scrollTo(0,0);
+  }
+  navButtons.forEach(function(b){
+    b.addEventListener('click', function(){ showView(b.getAttribute('data-view')); });
+  });
+
+  /* ================= HOME ================= */
+  function renderHome(){
+    // reminders: review-flagged logs whose next review date has arrived
+    var today = new Date();
+    var reminders = logs.filter(function(l){
+      if(!l.review) return false;
+      var nr = l.nextReview || addDaysStr(l.date, REVIEW_INTERVALS[0]);
+      return daysBetween(parseDate(nr), today) >= 0;
+    }).sort(function(a,b){ return parseDate(a.nextReview||a.date)-parseDate(b.nextReview||b.date); });
+
+    var rz = document.getElementById('reminderZone');
+    if(reminders.length===0){
+      rz.innerHTML = '';
+    }else{
+      var html = '<div class="section-title"><span>復習リマインダー</span><span class="rule"></span></div>';
+      reminders.slice(0,6).forEach(function(l){
+        var q = qualById(l.qualId);
+        var stage = l.reviewStage||0;
+        var stageLabel = '復習'+(stage+1)+'回目（前回から'+REVIEW_INTERVALS[stage]+'日）';
+        html += '<div class="reminder-item"><div class="txt"><b>'+esc(q?q.name:'（削除された資格）')+'</b>'+fmtDateJP(l.date)+'の内容・'+stageLabel+' '+(l.note?esc(l.note.slice(0,26)):'')+'</div><button data-clear="'+l.id+'">復習した</button></div>';
+      });
+      rz.innerHTML = html;
+      rz.querySelectorAll('[data-clear]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var lg = logs.find(function(x){ return x.id===btn.getAttribute('data-clear'); });
+          if(lg){
+            var nextStage = (lg.reviewStage||0)+1;
+            if(nextStage < REVIEW_INTERVALS.length){
+              lg.reviewStage = nextStage;
+              lg.nextReview = addDaysStr(todayStr(), REVIEW_INTERVALS[nextStage]);
+              persist(); renderHome();
+              toast('次は'+REVIEW_INTERVALS[nextStage]+'日後にリマインドします');
+            }else{
+              lg.review = false;
+              persist(); renderHome();
+              toast('復習が完了しました🎉');
+            }
+          }
+        });
+      });
+    }
+
+    // KPI: this week total, streak, this month total, all-time total
+    // 資格が削除された記録は「資格別 累計学習時間」と数字が食い違わないよう集計から除外する
+    var weekTotal = 0, monthTotal = 0, allTotal = 0;
+    var byDate = {};
+    var curYear = today.getFullYear(), curMonth = today.getMonth();
+    logs.filter(isLiveLog).forEach(function(l){
+      var d = daysBetween(parseDate(l.date), today);
+      if(d>=0 && d<7) weekTotal += l.minutes;
+      var ld = parseDate(l.date);
+      if(ld.getFullYear()===curYear && ld.getMonth()===curMonth) monthTotal += l.minutes;
+      allTotal += l.minutes;
+      byDate[l.date] = (byDate[l.date]||0) + l.minutes;
+    });
+    var streak = 0;
+    for(var i=0;i<400;i++){
+      var dt = new Date(today.getFullYear(),today.getMonth(),today.getDate()-i);
+      var key = dt.getFullYear()+'-'+pad(dt.getMonth()+1)+'-'+pad(dt.getDate());
+      if(byDate[key] && byDate[key]>0) streak++;
+      else break;
+    }
+    // マイルストーン演出（連続記録が途切れたら、また同じ日数を再度祝えるようにリセットする）
+    var MILESTONES = [3,7,14,30,50,100,200,365];
+    if(streak===0 && settings.lastMilestone!==0){
+      settings.lastMilestone = 0;
+      persist();
+    }else if(streak>0 && MILESTONES.indexOf(streak)>=0 && settings.lastMilestone!==streak){
+      settings.lastMilestone = streak;
+      persist();
+      toast('🎉 '+streak+'日連続達成！その調子です');
+    }
+    var kz = document.getElementById('kpiZone');
+    kz.innerHTML =
+      '<div class="kpi"><div class="n">'+Math.round(weekTotal/6)/10+'</div><div class="l">今週の学習時間（h）</div></div>'+
+      '<div class="kpi"><div class="n">'+streak+'</div><div class="l">連続学習日数</div></div>'+
+      '<div class="kpi"><div class="n">'+Math.round(monthTotal/6)/10+'</div><div class="l">今月の学習時間（h）</div></div>'+
+      '<div class="kpi"><div class="n">'+Math.round(allTotal/6)/10+'</div><div class="l">累計学習時間（h）</div></div>';
+
+    // per-qualification breakdown
+    var bz = document.getElementById('breakdownZone');
+    if(bz){
+      if(myQuals.length===0 || allTotal===0){
+        bz.style.display = 'none';
+        bz.innerHTML = '';
+      }else{
+        bz.style.display = 'block';
+        var rows = myQuals.map(function(q){ return {name:q.name, mins: totalMinutesFor(q.id)}; })
+          .filter(function(r){ return r.mins>0; })
+          .sort(function(a,b){ return b.mins-a.mins; });
+        var maxMins = Math.max.apply(null, rows.map(function(r){ return r.mins; }).concat([1]));
+        var rowsHtml = rows.map(function(r){
+          var pct = Math.round(r.mins/maxMins*100);
+          var h = Math.round(r.mins/6)/10;
+          return '<div class="stat-row"><div class="dlabel" style="width:auto;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(r.name)+'</div><div class="track"><i style="width:'+pct+'%;"></i></div><div class="val">'+h+'h</div></div>';
+        }).join('');
+        bz.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:10px;">資格別 累計学習時間</div>'+rowsHtml;
+      }
+    }
+
+    // 手当の見込み（合格済みの資格のみ集計）
+    var az = document.getElementById('allowanceZone');
+    var passedForAllowance = myQuals.filter(function(q){ return q.status==='passed' && q.tier && TIER_META[q.tier]; });
+    if(az){
+      if(passedForAllowance.length===0){
+        az.style.display = 'none'; az.innerHTML = '';
+      }else{
+        var monthlyRaw = 0, lumpTotal = 0;
+        passedForAllowance.forEach(function(q){
+          var tm = TIER_META[q.tier];
+          if(tm.type==='monthly') monthlyRaw += tm.yen; else lumpTotal += tm.yen;
+        });
+        var monthlyCapped = Math.min(monthlyRaw, MONTHLY_ALLOWANCE_CAP);
+        az.style.display = 'block';
+        az.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:8px;">合格済み資格の手当（見込み）</div>'+
+          '<div class="kpi-grid" style="margin-bottom:0;">'+
+            '<div class="kpi"><div class="n">'+(monthlyCapped/10000)+'万</div><div class="l">毎月の手当（上限5万円）</div></div>'+
+            '<div class="kpi"><div class="n">'+(lumpTotal/10000)+'万</div><div class="l">一時金の累計</div></div>'+
+          '</div>'+
+          (monthlyRaw>MONTHLY_ALLOWANCE_CAP ? '<div style="font-size:11px;color:var(--ink-faint);margin-top:8px;">本来の合計は月'+(monthlyRaw/10000)+'万円ですが、重複支給の上限（5万円）を適用しています。</div>' : '');
+      }
+    }
+
+    // qual cards（学習中）
+    var cz = document.getElementById('qualCardsZone');
+    var pz = document.getElementById('passedZone');
+    if(myQuals.length===0){
+      cz.innerHTML = '<div class="empty-state">まだ登録した資格がありません。<br>「資格」タブから、対象資格一覧や独自の資格を追加してください。<br><button class="btn accent" id="goQualsBtn">資格を追加する</button></div>';
+      document.getElementById('goQualsBtn').addEventListener('click', function(){ showView('quals'); });
+      if(pz) pz.innerHTML = '';
+      return;
+    }
+    var activeQuals = myQuals.filter(function(q){ return q.status!=='passed'; });
+    var passedQuals = myQuals.filter(function(q){ return q.status==='passed'; });
+
+    if(activeQuals.length===0){
+      cz.innerHTML = '<div class="empty-state">学習中の資格はありません。</div>';
+    }else{
+      var sorted = activeQuals.slice().sort(function(a,b){
+        if(a.examDate && b.examDate) return parseDate(a.examDate)-parseDate(b.examDate);
+        if(a.examDate) return -1;
+        if(b.examDate) return 1;
+        return 0;
+      });
+      var html2 = '';
+      sorted.forEach(function(q){
+        var mins = totalMinutesFor(q.id);
+        var hrs = Math.round(mins/6)/10;
+        var pct = q.targetHours ? Math.min(100, Math.round(mins/(q.targetHours*60)*100)) : null;
+        var countdownHtml = '';
+        var dleft = null;
+        if(q.examDate){
+          dleft = daysBetween(today, parseDate(q.examDate));
+          var label = dleft<0 ? '終了' : (dleft===0 ? '本日' : dleft);
+          countdownHtml = '<div class="countdown"><div class="num">'+label+'</div><div class="unit">'+(dleft>0?'日後':(dleft===0?'試験日':'試験日経過'))+'</div></div>';
+        }
+        var failedBadge = q.status==='failed' ? '<span class="chip" style="color:var(--danger);border-color:var(--danger);margin-left:6px;">不合格・再挑戦中</span>' : '';
+
+        // 逆算プランナー
+        var paceHtml = '';
+        if(q.examDate && q.targetHours && dleft!==null && dleft>=0){
+          var remainingMin = Math.max(0, q.targetHours*60 - mins);
+          var weekMin = weeklyMinutesFor(q.id, today);
+          var recentAvgPerDay = Math.round(weekMin/7);
+          if(remainingMin===0){
+            paceHtml = '<div class="tier-note" style="border-left-color:var(--success);margin:0 15px 13px;">目標時間に到達しています🎉</div>';
+          }else if(dleft===0){
+            paceHtml = '<div class="tier-note" style="border-left-color:var(--danger);margin:0 15px 13px;">'+
+              '合格ラインまであと'+(Math.round(remainingMin/6)/10)+'h・<b>本日が試験日です</b></div>';
+          }else{
+            var neededPerDay = Math.ceil(remainingMin/dleft);
+            var onTrack = recentAvgPerDay >= neededPerDay*0.9;
+            paceHtml = '<div class="tier-note" style="'+(onTrack?'':'border-left-color:var(--danger);')+'margin:0 15px 13px;">'+
+              '合格ラインまであと'+(Math.round(remainingMin/6)/10)+'h・残り'+dleft+'日 → <b>1日あたり約'+neededPerDay+'分</b>のペースが必要'+
+              (onTrack ? '（直近の平均ペースなら順調）' : '（直近の平均は1日約'+recentAvgPerDay+'分・ペースアップが必要）')+
+              '</div>';
+          }
+        }
+
+        html2 += '<div class="qual-card">'+
+          '<div class="qual-card-head"><div><div class="name">'+esc(q.name)+failedBadge+'</div><div class="cat">'+esc(CATS[q.cat]||'')+(q.examDate?' ・ 試験日 '+fmtDateJP(q.examDate):'')+'</div>'+tierBadgeHTML(q)+'</div>'+countdownHtml+'</div>'+
+          '<div class="progress-wrap">'+
+            (pct!==null ? '<div class="progress-bar"><i style="width:'+pct+'%;"></i></div><div class="progress-meta"><span>'+hrs+'h / '+q.targetHours+'h</span><span>'+pct+'%</span></div>' :
+            '<div class="progress-meta"><span>累計 '+hrs+'h</span><span></span></div>')+
+          '</div>'+
+          paceHtml+
+        '</div>';
+      });
+      cz.innerHTML = html2;
+    }
+
+    // 合格済み資格（アーカイブ表示）
+    if(pz){
+      if(passedQuals.length===0){
+        pz.innerHTML = '';
+      }else{
+        var passedHtml = '<div class="section-title"><span>合格済み</span><span class="rule"></span></div>';
+        passedHtml += passedQuals.map(function(q){
+          return '<div class="qual-card" style="opacity:.8;"><div class="qual-card-head"><div><div class="name">✅ '+esc(q.name)+'</div><div class="cat">'+esc(CATS[q.cat]||'')+'</div>'+tierBadgeHTML(q)+'</div></div></div>';
+        }).join('');
+        pz.innerHTML = passedHtml;
+      }
+    }
+  }
+  function weeklyMinutesFor(qualId, today){
+    var t=0;
+    logs.forEach(function(l){
+      if(l.qualId!==qualId) return;
+      var d = daysBetween(parseDate(l.date), today);
+      if(d>=0 && d<7) t += l.minutes;
+    });
+    return t;
+  }
+
+  /* ================= LOG ================= */
+  var swSeconds = 0, swRunning = false, swInterval = null;
+  function swRender(){
+    var h = Math.floor(swSeconds/3600), m = Math.floor((swSeconds%3600)/60), s = swSeconds%60;
+    document.getElementById('swTime').textContent = pad(h)+':'+pad(m)+':'+pad(s);
+  }
+  document.getElementById('swToggle').addEventListener('click', function(){
+    swRunning = !swRunning;
+    this.textContent = swRunning ? '停止' : '開始';
+    if(swRunning){
+      swInterval = setInterval(function(){ swSeconds++; swRender(); }, 1000);
+    }else{
+      clearInterval(swInterval);
+      var mi = document.getElementById('logMinutes');
+      if(mi) mi.value = Math.max(1, Math.round(swSeconds/60));
+    }
+  });
+  document.getElementById('swReset').addEventListener('click', function(){
+    swSeconds = 0; swRunning = false; clearInterval(swInterval);
+    document.getElementById('swToggle').textContent = '開始';
+    swRender();
+  });
+
+  var editingLogId = null;
+
+  function renderLog(){
+    var ff = document.getElementById('logFormZone');
+    if(myQuals.length===0){
+      ff.innerHTML = '<div class="empty-state">先に「資格」タブで学習する資格を追加してください。</div>';
+      document.getElementById('logListZone').innerHTML = '';
+      return;
+    }
+    var editing = editingLogId ? logs.find(function(x){ return x.id===editingLogId; }) : null;
+    var opts = myQuals.map(function(q){ return '<option value="'+q.id+'"'+(editing&&editing.qualId===q.id?' selected':'')+'>'+esc(q.name)+'</option>'; }).join('');
+    ff.innerHTML =
+      (editing ? '<div style="font-size:12px;font-weight:700;color:var(--accent-ink);background:var(--accent-soft);padding:6px 10px;margin-bottom:10px;">記録を編集中</div>' : '') +
+      '<label class="field">資格</label><select id="logQual">'+opts+'</select>'+
+      '<label class="field">日付</label><input type="date" id="logDate" value="'+(editing?editing.date:todayStr())+'">'+
+      '<label class="field">学習時間（分）</label><input type="number" id="logMinutes" min="1" placeholder="例：45" value="'+(editing?editing.minutes:'')+'">'+
+      '<label class="field">学習内容・メモ</label><textarea id="logNote" placeholder="例：応用情報 午後問題 セキュリティ分野">'+(editing?esc(editing.note||''):'')+'</textarea>'+
+      '<label style="display:flex;align-items:center;gap:7px;margin-top:12px;font-size:13px;color:var(--ink-soft);"><input type="checkbox" id="logReview" style="width:auto;"'+(editing&&editing.review?' checked':'')+'>あとで復習リマインドする</label>'+
+      '<div style="display:flex;gap:8px;margin-top:14px;">'+
+        (editing?'<button class="btn secondary" id="logCancelBtn">キャンセル</button>':'')+
+        '<button class="btn accent block" id="logSaveBtn">'+(editing?'更新する':'記録する')+'</button>'+
+      '</div>';
+
+    if(editing){
+      document.getElementById('logCancelBtn').addEventListener('click', function(){
+        editingLogId = null;
+        renderLog();
+      });
+    }
+
+    document.getElementById('logSaveBtn').addEventListener('click', function(){
+      var qual = document.getElementById('logQual').value;
+      var date = document.getElementById('logDate').value || todayStr();
+      var minutes = parseInt(document.getElementById('logMinutes').value, 10);
+      var note = document.getElementById('logNote').value.trim();
+      var review = document.getElementById('logReview').checked;
+      if(!minutes || minutes<=0){ toast('学習時間を入力してください'); return; }
+      if(editing){
+        var wasReview = editing.review;
+        editing.qualId = qual; editing.date = date; editing.minutes = minutes; editing.note = note; editing.review = review;
+        if(review && !wasReview){
+          editing.reviewStage = 0;
+          editing.nextReview = addDaysStr(date, REVIEW_INTERVALS[0]);
+        }else if(!review){
+          editing.reviewStage = null; editing.nextReview = null;
+        }
+        editingLogId = null;
+        toast('更新しました');
+      }else{
+        var entry = { id: uid(), qualId: qual, date: date, minutes: minutes, note: note, review: review };
+        if(review){ entry.reviewStage = 0; entry.nextReview = addDaysStr(date, REVIEW_INTERVALS[0]); }
+        logs.push(entry);
+        toast('記録しました');
+      }
+      persist();
+      swSeconds = 0; swRunning=false; clearInterval(swInterval);
+      document.getElementById('swToggle').textContent='開始'; swRender();
+      renderLog();
+      markStudyDoneOnCalendar(qual, date);
+    });
+
+    var lz = document.getElementById('logListZone');
+    var sorted = logs.slice().sort(function(a,b){ return b.date.localeCompare(a.date) || b.id.localeCompare(a.id); }).slice(0,30);
+    if(sorted.length===0){
+      lz.innerHTML = '<div class="empty-state">まだ記録がありません。</div>';
+      return;
+    }
+    lz.innerHTML = sorted.map(function(l){
+      var q = qualById(l.qualId);
+      return '<div class="log-item"><div class="mins">'+l.minutes+'<span>分</span></div><div class="body">'+
+        '<div class="top"><span>'+esc(q?q.name:'（削除された資格）')+'</span><span></span></div>'+
+        (l.note?'<div class="note">'+esc(l.note)+'</div>':'')+
+        '<div class="date">'+fmtDateJP(l.date)+(l.review?' ・ 復習対象':'')+'</div>'+
+        '</div><div style="display:flex;flex-direction:column;gap:4px;"><button class="del" data-edit="'+l.id+'" title="編集">✎</button><button class="del" data-del="'+l.id+'" title="削除">✕</button></div></div>';
+    }).join('');
+    lz.querySelectorAll('[data-edit]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        editingLogId = btn.getAttribute('data-edit');
+        renderLog();
+        window.scrollTo(0,0);
+      });
+    });
+    lz.querySelectorAll('[data-del]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if(!confirm('この記録を削除しますか？元に戻せません。')) return;
+        var id = btn.getAttribute('data-del');
+        logs = logs.filter(function(x){ return x.id!==id; });
+        if(editingLogId===id) editingLogId = null;
+        persist(); renderLog();
+      });
+    });
+  }
+
+  /* ================= CALENDAR ================= */
+  var calYear, calMonth, calSelectedDate = null;
+  (function(){ var d=new Date(); calYear=d.getFullYear(); calMonth=d.getMonth(); })();
+
+  function minutesOnDate(dateStr){
+    var t=0;
+    logs.forEach(function(l){ if(l.date===dateStr && isLiveLog(l)) t+=l.minutes; });
+    return t;
+  }
+
+  function renderCalendar(){
+    document.getElementById('calLabel').textContent = calYear+'年 '+(calMonth+1)+'月';
+    var dowZone = document.getElementById('calDow');
+    dowZone.innerHTML = ['日','月','火','水','木','金','土'].map(function(d){ return '<div class="cal-dow">'+d+'</div>'; }).join('');
+
+    var first = new Date(calYear, calMonth, 1);
+    var startPad = first.getDay();
+    var daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+    var today = todayStr();
+
+    var html = '';
+    for(var i=0;i<startPad;i++) html += '<div class="cal-cell pad"></div>';
+    for(var d=1; d<=daysInMonth; d++){
+      var dateStr = calYear+'-'+pad(calMonth+1)+'-'+pad(d);
+      var mins = minutesOnDate(dateStr);
+      var lvl = mins===0?'':(mins<30?'l1':(mins<90?'l2':'l3'));
+      var cls = 'cal-cell '+lvl;
+      if(dateStr===today) cls += ' today';
+      if(dateStr===calSelectedDate) cls += ' sel';
+      html += '<div class="'+cls+'" data-date="'+dateStr+'">'+d+'</div>';
+    }
+    document.getElementById('calGrid').innerHTML = html;
+    document.querySelectorAll('#calGrid .cal-cell:not(.pad)').forEach(function(cell){
+      cell.addEventListener('click', function(){
+        calSelectedDate = cell.getAttribute('data-date');
+        renderCalendar();
+        renderCalDay();
+      });
+    });
+
+    // week stat (last 7 days bar)
+    var wz = document.getElementById('weekStatZone');
+    var todayD = new Date();
+    var maxMin = 1;
+    var rows = [];
+    for(var i2=6;i2>=0;i2--){
+      var dt = new Date(todayD.getFullYear(),todayD.getMonth(),todayD.getDate()-i2);
+      var key = dt.getFullYear()+'-'+pad(dt.getMonth()+1)+'-'+pad(dt.getDate());
+      var m = minutesOnDate(key);
+      maxMin = Math.max(maxMin, m);
+      rows.push({label:['日','月','火','水','木','金','土'][dt.getDay()], mins:m});
+    }
+    wz.innerHTML = rows.map(function(r){
+      var pct = Math.round(r.mins/maxMin*100);
+      return '<div class="stat-row"><div class="dlabel">'+r.label+'</div><div class="track"><i style="width:'+pct+'%;"></i></div><div class="val">'+r.mins+'分</div></div>';
+    }).join('');
+
+    if(calSelectedDate) renderCalDay();
+  }
+  function renderCalDay(){
+    document.getElementById('calDayLabel').textContent = calSelectedDate ? fmtDateJP(calSelectedDate)+'の記録' : '日付を選択';
+    var zone = document.getElementById('calDayZone');
+    if(!calSelectedDate){ zone.innerHTML=''; return; }
+    var dayLogs = logs.filter(function(l){ return l.date===calSelectedDate; });
+    if(dayLogs.length===0){ zone.innerHTML = '<div style="font-size:12.5px;color:var(--ink-faint);">この日の記録はありません。</div>'; return; }
+    zone.innerHTML = dayLogs.map(function(l){
+      var q = qualById(l.qualId);
+      return '<div class="log-item"><div class="mins">'+l.minutes+'<span>分</span></div><div class="body"><div class="top"><span>'+esc(q?q.name:'（削除された資格）')+'</span></div>'+(l.note?'<div class="note">'+esc(l.note)+'</div>':'')+'</div></div>';
+    }).join('');
+  }
+  document.getElementById('calPrev').addEventListener('click', function(){
+    calMonth--; if(calMonth<0){ calMonth=11; calYear--; } renderCalendar();
+  });
+  document.getElementById('calNext').addEventListener('click', function(){
+    calMonth++; if(calMonth>11){ calMonth=0; calYear++; } renderCalendar();
+  });
+
+  /* ================= QUALS ================= */
+  var libFilterCat = 'all';
+  var libSearchText = '';
+
+  function renderMyQuals(){
+    var zone = document.getElementById('myQualsZone');
+    if(myQuals.length===0){
+      zone.innerHTML = '<div class="empty-state">下のライブラリから、勉強する資格を選んで追加してください。</div>';
+      return;
+    }
+    zone.innerHTML = myQuals.map(function(q){
+      var gcalStatus = '';
+      if(q.gcal && q.gcal.examEventId){
+        var dt = new Date(q.gcal.examSyncedAt || q.gcal.lastSynced || Date.now());
+        gcalStatus = '<div style="font-size:11px;color:var(--success);margin-top:6px;">✓ 試験日をGoogleカレンダーに連携済み（'+(dt.getMonth()+1)+'/'+dt.getDate()+' 同期）</div>';
+      }
+      var plan = q.studyPlan || {days:[], time:'21:00', minutes:30};
+      var dayBtns = DOW_LABELS.map(function(lbl,idx){
+        var active = plan.days.indexOf(idx)>=0;
+        return '<div class="day-btn'+(active?' active':'')+'" data-day="'+idx+'">'+lbl+'</div>';
+      }).join('');
+      var studyStatus = '';
+      if(q.gcal && q.gcal.studyEventId){
+        var sdt = new Date(q.gcal.studySyncedAt || q.gcal.lastSynced || Date.now());
+        studyStatus = '<div style="font-size:11px;color:var(--success);margin-top:6px;">✓ 学習予定をカレンダーに登録済み（'+(sdt.getMonth()+1)+'/'+sdt.getDate()+' 同期）</div>';
+      }
+      var status = q.status || 'studying';
+      var statusBtns = [
+        {v:'studying', l:'受験予定'},
+        {v:'passed', l:'合格'},
+        {v:'failed', l:'不合格'}
+      ].map(function(s){
+        return '<div class="status-btn'+(status===s.v?' active':'')+'" data-status="'+s.v+'">'+s.l+'</div>';
+      }).join('');
+      return '<div class="my-qual-edit" data-qid="'+q.id+'">'+
+        '<div class="t">'+esc(q.name)+'</div><div class="c">'+esc(CATS[q.cat]||'')+'</div>'+tierBadgeHTML(q)+
+        '<label class="field">受験ステータス</label>'+
+        '<div class="day-row">'+statusBtns+'</div>'+
+        '<div class="row" style="margin-top:8px;">'+
+          '<div><label class="field" style="margin-top:0;">試験日</label><input type="date" class="ex-date" value="'+(q.examDate||'')+'"></div>'+
+          '<div><label class="field" style="margin-top:0;">目標時間(h)</label><input type="number" class="ex-hours" min="0" value="'+(q.targetHours||'')+'"></div>'+
+        '</div>'+
+        '<label class="field">教材・参考リンクメモ</label>'+
+        '<textarea class="materials-memo" placeholder="例：〇〇の教科書、https://...">'+esc(q.materials||'')+'</textarea>'+
+        gcalStatus+
+        '<div style="display:flex;gap:8px;margin-top:9px;">'+
+          '<button class="btn secondary small" style="flex:1;" data-gcal="'+q.id+'">'+((q.gcal&&q.gcal.examEventId)?'📅 カレンダーを更新':'📅 Googleカレンダーに登録')+'</button>'+
+        '</div>'+
+        '<label class="field">学習予定（毎週くり返し・試験日まで）</label>'+
+        '<div class="day-row">'+dayBtns+'</div>'+
+        '<div class="row" style="margin-top:8px;">'+
+          '<div><label class="field" style="margin-top:0;font-size:11px;">開始時刻</label><input type="time" class="study-time" value="'+(plan.time||'21:00')+'"></div>'+
+          '<div><label class="field" style="margin-top:0;font-size:11px;">学習時間(分)</label><input type="number" class="study-mins" min="5" value="'+(plan.minutes||30)+'"></div>'+
+        '</div>'+
+        studyStatus+
+        '<button class="btn secondary small" style="width:100%;margin-top:8px;" data-studysync="'+q.id+'">📅 学習予定をカレンダーに登録</button>'+
+        '<button class="btn secondary small remove" data-remove="'+q.id+'">この資格を削除</button>'+
+      '</div>';
+    }).join('');
+
+    zone.querySelectorAll('[data-status]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var card = btn.closest('[data-qid]');
+        var q = qualById(card.getAttribute('data-qid'));
+        if(!q) return;
+        q.status = btn.getAttribute('data-status');
+        persist();
+        card.querySelectorAll('[data-status]').forEach(function(b){ b.classList.toggle('active', b===btn); });
+        renderHome();
+        if(q.status==='passed') toast(q.name+' を合格済みにしました🎉');
+      });
+    });
+    zone.querySelectorAll('.materials-memo').forEach(function(ta){
+      ta.addEventListener('change', function(){
+        var q = qualById(ta.closest('[data-qid]').getAttribute('data-qid'));
+        if(!q) return;
+        q.materials = ta.value;
+        persist();
+      });
+    });
+
+    zone.querySelectorAll('.ex-date').forEach(function(inp){
+      inp.addEventListener('change', function(){
+        var q = qualById(inp.closest('[data-qid]').getAttribute('data-qid'));
+        if(!q) return;
+        q.examDate = inp.value || null;
+        persist();
+      });
+    });
+    zone.querySelectorAll('.ex-hours').forEach(function(inp){
+      inp.addEventListener('change', function(){
+        var q = qualById(inp.closest('[data-qid]').getAttribute('data-qid'));
+        if(!q) return;
+        var v = parseFloat(inp.value);
+        q.targetHours = (inp.value!=='' && !isNaN(v) && v>0) ? v : null;
+        if(inp.value!=='' && q.targetHours===null) inp.value = '';
+        persist();
+      });
+    });
+    zone.querySelectorAll('.day-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var q = qualById(btn.closest('[data-qid]').getAttribute('data-qid'));
+        if(!q) return;
+        var idx = parseInt(btn.getAttribute('data-day'),10);
+        if(isNaN(idx)) return;
+        q.studyPlan = q.studyPlan || {days:[], time:'21:00', minutes:30};
+        var i = q.studyPlan.days.indexOf(idx);
+        if(i>=0) q.studyPlan.days.splice(i,1); else q.studyPlan.days.push(idx);
+        persist();
+        btn.classList.toggle('active');
+      });
+    });
+    zone.querySelectorAll('.study-time').forEach(function(inp){
+      inp.addEventListener('change', function(){
+        var q = qualById(inp.closest('[data-qid]').getAttribute('data-qid'));
+        if(!q) return;
+        q.studyPlan = q.studyPlan || {days:[], time:'21:00', minutes:30};
+        q.studyPlan.time = inp.value || '21:00';
+        persist();
+      });
+    });
+    zone.querySelectorAll('.study-mins').forEach(function(inp){
+      inp.addEventListener('change', function(){
+        var q = qualById(inp.closest('[data-qid]').getAttribute('data-qid'));
+        if(!q) return;
+        q.studyPlan = q.studyPlan || {days:[], time:'21:00', minutes:30};
+        var v = parseInt(inp.value,10);
+        q.studyPlan.minutes = (!isNaN(v) && v>0) ? v : 30;
+        inp.value = q.studyPlan.minutes;
+        persist();
+      });
+    });
+    zone.querySelectorAll('[data-studysync]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        syncStudyPlanToCalendar(btn.getAttribute('data-studysync'), btn);
+      });
+    });
+    zone.querySelectorAll('[data-gcal]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        syncQualToCalendar(btn.getAttribute('data-gcal'), btn);
+      });
+    });
+    zone.querySelectorAll('[data-remove]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if(!confirm('この資格をマイ資格から削除しますか？（学習記録は残ります）')) return;
+        var id = btn.getAttribute('data-remove');
+        var q = qualById(id);
+        if(q && q.gcal && confirm('Googleカレンダーに登録済みの予定も削除しますか？')){
+          deleteQualCalendarEvents(q);
+        }
+        myQuals = myQuals.filter(function(x){ return x.id!==id; });
+        persist();
+        renderQuals();
+      });
+    });
+  }
+
+  function renderCatScroll(){
+    var zone = document.getElementById('catScroll');
+    var keys = ['all'].concat(Object.keys(CATS).filter(function(k){ return k!=='custom'; }));
+    zone.innerHTML = keys.map(function(k){
+      var label = k==='all' ? 'すべて' : CATS[k];
+      return '<div class="cat-chip'+(libFilterCat===k?' active':'')+'" data-cat="'+k+'">'+label+'</div>';
+    }).join('');
+    zone.querySelectorAll('.cat-chip').forEach(function(chip){
+      chip.addEventListener('click', function(){
+        libFilterCat = chip.getAttribute('data-cat');
+        renderCatScroll();
+        renderLibList();
+      });
+    });
+  }
+
+  function isAdded(libId){ return myQuals.some(function(q){ return q.libId===libId; }); }
+
+  function renderLibList(){
+    var zone = document.getElementById('libListZone');
+    var items = LIBRARY.filter(function(it){
+      if(libFilterCat!=='all' && it.cat!==libFilterCat) return false;
+      if(libSearchText && it.name.toLowerCase().indexOf(libSearchText.toLowerCase())===-1) return false;
+      return true;
+    });
+    if(items.length===0){ zone.innerHTML = '<div class="empty-state">該当する資格が見つかりません。</div>'; return; }
+    zone.innerHTML = items.map(function(it){
+      var added = isAdded(it.id);
+      return '<div class="lib-item"><div><div class="t">'+esc(it.name)+'</div><div class="c">'+esc(CATS[it.cat])+'</div>'+tierBadgeHTML(it)+'</div>'+
+        '<button class="'+(added?'added':'')+'" data-lib="'+it.id+'">'+(added?'追加済み':'＋ 追加')+'</button></div>';
+    }).join('');
+    zone.querySelectorAll('[data-lib]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var libId = btn.getAttribute('data-lib');
+        if(isAdded(libId)){
+          myQuals = myQuals.filter(function(q){ return q.libId!==libId; });
+        }else{
+          var src = LIBRARY.find(function(x){ return x.id===libId; });
+          myQuals.push({ id: uid(), libId: libId, name: src.name, cat: src.cat, tier: src.tier||null, scoreNote: src.scoreNote||null, examDate: null, targetHours: null, addedAt: Date.now(), status: 'studying', materials: '', studyPlan: null, gcal: null });
+          toast(src.name+' を追加しました');
+        }
+        persist();
+        renderMyQuals();
+        renderLibList();
+      });
+    });
+  }
+
+  var libSearchTimer = null;
+  document.getElementById('libSearch').addEventListener('input', function(){
+    var val = this.value.trim();
+    clearTimeout(libSearchTimer);
+    libSearchTimer = setTimeout(function(){
+      libSearchText = val;
+      renderLibList();
+    }, 150);
+  });
+
+  function renderQuals(){
+    renderMyQuals();
+    renderCatScroll();
+    renderLibList();
+    renderGoogleAuthPanel();
+  }
+
+  /* ---- custom modal ---- */
+  var customModal = document.getElementById('customModal');
+  (function(){
+    var sel = document.getElementById('cmCat');
+    sel.innerHTML = Object.keys(CATS).filter(function(k){return k!=='custom';}).map(function(k){ return '<option value="'+k+'">'+CATS[k]+'</option>'; }).join('') + '<option value="custom">カスタム</option>';
+  })();
+  document.getElementById('openCustomModal').addEventListener('click', function(){
+    document.getElementById('cmName').value='';
+    document.getElementById('cmDate').value='';
+    document.getElementById('cmHours').value='';
+    customModal.classList.add('open');
+  });
+  document.getElementById('cmCancel').addEventListener('click', function(){ customModal.classList.remove('open'); });
+  customModal.addEventListener('click', function(e){ if(e.target===customModal) customModal.classList.remove('open'); });
+  document.getElementById('cmSave').addEventListener('click', function(){
+    var name = document.getElementById('cmName').value.trim();
+    if(!name){ toast('資格名を入力してください'); return; }
+    var cat = document.getElementById('cmCat').value;
+    var date = document.getElementById('cmDate').value || null;
+    var hoursRaw = document.getElementById('cmHours').value;
+    var hoursNum = parseFloat(hoursRaw);
+    var hours = (hoursRaw!=='' && !isNaN(hoursNum) && hoursNum>0) ? hoursNum : null;
+    myQuals.push({ id: uid(), libId: null, name: name, cat: cat, tier: null, scoreNote: null, examDate: date, targetHours: hours, addedAt: Date.now(), status: 'studying', materials: '', studyPlan: null, gcal: null });
+    persist();
+    customModal.classList.remove('open');
+    toast('追加しました');
+    renderQuals();
+  });
+
+  /* ---------------- Google連携設定パネル ---------------- */
+  function renderGoogleAuthPanel(){
+    var current = getGoogleClientId();
+    var input = document.getElementById('googleClientIdInput');
+    if(input && document.activeElement!==input) input.value = current;
+    document.getElementById('googleClientIdStatus').textContent = current
+      ? '設定済み：'+current.slice(0,20)+(current.length>20?'…':'')
+      : '未設定です。設定するとGoogleカレンダー連携ボタンが使えるようになります。';
+  }
+  document.getElementById('saveGoogleClientIdBtn').addEventListener('click', function(){
+    var v = document.getElementById('googleClientIdInput').value.trim();
+    setGoogleClientId(v);
+    googleAccessToken = null; googleTokenExpiry = 0; // Client IDが変わったら認証をやり直す
+    toast(v ? '保存しました' : 'クリアしました');
+    renderGoogleAuthPanel();
+  });
+
+  document.getElementById('exportDataBtn').addEventListener('click', function(){
+    var payload = { app:'qualification-notebook', version:1, exportedAt: new Date().toISOString(), myQuals: myQuals, logs: logs, googleClientId: getGoogleClientId() };
+    var json = JSON.stringify(payload, null, 2);
+    var filename = 'qual-notebook-backup-'+todayStr()+'.json';
+    try{
+      var blob = new Blob([json], {type:'application/json'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+      toast('書き出しました');
+    }catch(e){
+      toast('書き出しに失敗しました');
+    }
+  });
+
+  document.getElementById('importDataBtn').addEventListener('click', function(){
+    document.getElementById('importDataFile').click();
+  });
+  document.getElementById('importDataFile').addEventListener('change', function(e){
+    var file = e.target.files && e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      var data;
+      try{ data = JSON.parse(reader.result); }catch(err){ toast('ファイルを読み込めませんでした'); return; }
+      if(!data || !isValidRecordArray(data.myQuals) || !isValidRecordArray(data.logs)){ toast('バックアップファイルの形式が違います'); return; }
+      if(!confirm('バックアップの内容を今のデータに追加します（重複するものはスキップされます）。よろしいですか？')) return;
+      var existingQualIds = {}; myQuals.forEach(function(q){ existingQualIds[q.id]=true; });
+      data.myQuals.forEach(function(q){ if(!existingQualIds[q.id]) myQuals.push(q); });
+      var existingLogIds = {}; logs.forEach(function(l){ existingLogIds[l.id]=true; });
+      data.logs.forEach(function(l){ if(!existingLogIds[l.id]) logs.push(l); });
+      if(data.googleClientId && !getGoogleClientId()){
+        setGoogleClientId(data.googleClientId);
+      }
+      persist();
+      toast('読み込みました');
+      renderHome(); renderQuals(); renderLog();
+      showView('home');
+    };
+    reader.onerror = function(){ toast('ファイルを読み込めませんでした'); };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  /* ---------------- init ---------------- */
+  renderHome();
+})();
+</script>
+</body>
+</html>

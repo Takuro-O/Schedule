@@ -855,6 +855,7 @@
       no_client_id: 'Google連携の設定（Client ID）がまだされていません。資格タブの「Google連携の設定」から設定してください。',
       gis_not_loaded: 'Googleログインの読み込みに失敗しました。通信環境を確認して再読み込みしてください。',
       google_auth_failed: 'Googleへのログインが完了しませんでした。もう一度お試しください。',
+      google_auth_timeout: 'Googleへのログインが時間内に完了しませんでした（ポップアップがブロックされていないか確認してください）。',
       http_401: 'Googleの認証が切れました。もう一度連携をお試しください。',
       http_403: 'Googleカレンダーへのアクセスが許可されていません（権限不足）。',
       http_404: '対象の予定が見つかりませんでした（すでに削除された可能性があります）。'
@@ -885,7 +886,7 @@
     if(typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2){
       return Promise.reject({code:'gis_not_loaded'});
     }
-    googleAuthInFlight = new Promise(function(resolve, reject){
+    var authPromise = new Promise(function(resolve, reject){
       try{
         var tokenClient = google.accounts.oauth2.initTokenClient({
           client_id: clientId,
@@ -897,11 +898,15 @@
             resolve(googleAccessToken);
           }
         });
-        tokenClient.requestAccessToken({ prompt: '' });
+        tokenClient.requestAccessToken();
       }catch(e){
         reject({code:'google_auth_failed'});
       }
     });
+    var timeoutPromise = new Promise(function(_, reject){
+      setTimeout(function(){ reject({code:'google_auth_timeout'}); }, 30000);
+    });
+    googleAuthInFlight = Promise.race([authPromise, timeoutPromise]);
     googleAuthInFlight.then(function(){ googleAuthInFlight = null; }, function(){ googleAuthInFlight = null; });
     return googleAuthInFlight;
   }

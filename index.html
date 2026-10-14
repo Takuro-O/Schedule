@@ -434,6 +434,19 @@
     cursor:pointer;
   }
 
+  .backup-notice{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    background:var(--accent-soft); border-left:3px solid var(--accent);
+    padding:10px 12px; margin-bottom:10px; font-size:12px; color:var(--accent-ink); line-height:1.5;
+  }
+  .backup-notice .txt b{ display:block; font-size:13px; }
+  .backup-notice .btns{ display:flex; gap:6px; flex-shrink:0; }
+  .backup-notice button{
+    border:1px solid var(--accent); background:var(--surface); color:var(--ink);
+    padding:6px 10px; font-size:11.5px; font-weight:700; cursor:pointer;
+  }
+  .backup-notice button.primary{ background:var(--accent); color:var(--accent-ink); }
+
   .modal-overlay{
     position:fixed; inset:0; background:rgba(0,0,0,.4);
     display:none; align-items:flex-end; justify-content:center; z-index:50;
@@ -474,6 +487,7 @@
 
   <!-- HOME -->
   <section class="view active" id="view-home">
+    <div id="backupZone"></div>
     <div id="reminderZone"></div>
 
     <div class="kpi-grid" id="kpiZone"></div>
@@ -568,6 +582,7 @@
     <div class="section-title"><span>データのバックアップ</span><span class="rule"></span></div>
     <div class="panel">
       <div style="font-size:12.5px;color:var(--ink-soft);line-height:1.6;margin-bottom:12px;">記録はこの端末のブラウザだけに保存されています。機種変更やブラウザのデータ削除で消えてしまうので、ときどき書き出しておくことをおすすめします。</div>
+      <div id="backupStatus" style="font-size:12px;color:var(--ink-faint);margin-bottom:10px;"></div>
       <div style="display:flex;gap:8px;">
         <button class="btn secondary" style="flex:1;" id="exportDataBtn">書き出す</button>
         <button class="btn secondary" style="flex:1;" id="importDataBtn">読み込む</button>
@@ -1401,6 +1416,7 @@
         pz.innerHTML = passedHtml;
       }
     }
+    renderBackupNotice();
   }
   function weeklyMinutesFor(qualId, today){
     var t=0;
@@ -1873,7 +1889,7 @@
     renderGoogleAuthPanel();
   });
 
-  document.getElementById('exportDataBtn').addEventListener('click', function(){
+  function exportData(){
     var payload = { app:'qualification-notebook', version:1, exportedAt: new Date().toISOString(), myQuals: myQuals, logs: logs, googleClientId: getGoogleClientId() };
     var json = JSON.stringify(payload, null, 2);
     var filename = 'qual-notebook-backup-'+todayStr()+'.json';
@@ -1885,10 +1901,14 @@
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
       toast('書き出しました');
+      settings.lastBackup = todayStr();
+      persist();
+      renderBackupNotice();
     }catch(e){
       toast('書き出しに失敗しました');
     }
-  });
+  }
+  document.getElementById('exportDataBtn').addEventListener('click', exportData);
 
   document.getElementById('importDataBtn').addEventListener('click', function(){
     document.getElementById('importDataFile').click();
@@ -1918,6 +1938,35 @@
     reader.readAsText(file);
     e.target.value = '';
   });
+
+  /* ---------------- backup reminder ---------------- */
+  var BACKUP_INTERVAL_DAYS = 30;  // この日数をこえたら催促する
+  var BACKUP_SNOOZE_DAYS = 7;     // 「あとで」を押したときに黙る日数
+  function daysSinceBackup(){
+    if(!settings.lastBackup) return null;
+    var n = daysBetween(parseDate(settings.lastBackup), new Date());
+    return isFinite(n) ? n : null;
+  }
+  function renderBackupNotice(){
+    var since = daysSinceBackup();
+    var st = document.getElementById('backupStatus');
+    if(st) st.textContent = since===null ? 'まだ書き出していません' : '最後に書き出した日：'+fmtDateJP(settings.lastBackup)+'（'+(since<=0 ? '今日' : since+'日前')+'）';
+    var el = document.getElementById('backupZone');
+    if(!el) return;
+    var hasData = logs.length>0 || myQuals.length>0;
+    var due = since===null || since>=BACKUP_INTERVAL_DAYS;
+    var snoozed = !!settings.backupSnoozeUntil && daysBetween(new Date(), parseDate(settings.backupSnoozeUntil)) > 0;
+    if(!hasData || !due || snoozed){ el.innerHTML = ''; return; }
+    var msg = since===null ? 'まだバックアップがありません' : '最後のバックアップから'+since+'日たちました';
+    el.innerHTML = '<div class="backup-notice"><div class="txt"><b>'+msg+'</b>記録はこの端末のブラウザだけに保存されています。</div>'+
+      '<div class="btns"><button class="primary" id="backupNowBtn">書き出す</button><button id="backupLaterBtn">あとで</button></div></div>';
+    document.getElementById('backupNowBtn').addEventListener('click', exportData);
+    document.getElementById('backupLaterBtn').addEventListener('click', function(){
+      settings.backupSnoozeUntil = addDaysStr(todayStr(), BACKUP_SNOOZE_DAYS);
+      persist();
+      renderBackupNotice();
+    });
+  }
 
   /* ---------------- allowance data (this device only) ---------------- */
   function sanitizeAllowanceData(d){
@@ -1979,6 +2028,7 @@
   /* ---------------- init ---------------- */
   renderHome();
   renderAllowancePanel();
+  renderBackupNotice();
 })();
 </script>
 </body>

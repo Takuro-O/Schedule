@@ -443,6 +443,16 @@
     cursor:pointer;
   }
 
+  .trend-wrap{ position:relative; height:124px; }
+  .trend{ display:flex; align-items:flex-end; gap:6px; height:100%; }
+  .trend .col{ flex:1; min-width:0; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; height:100%; }
+  .trend .v{ font-size:10px; color:var(--ink-soft); margin-bottom:2px; white-space:nowrap; position:relative; z-index:2; background:var(--surface); padding:0 2px; border-radius:2px; }
+  .trend .bar{ width:100%; background:var(--accent-soft); border-top:2px solid var(--accent); min-height:2px; }
+  .trend .col.cur .bar{ background:var(--accent); border-top-color:var(--accent-ink); }
+  .trend-labels{ display:flex; gap:6px; margin-top:6px; }
+  .trend-labels span{ flex:1; min-width:0; text-align:center; font-size:10px; color:var(--ink-faint); white-space:nowrap; }
+  .trend-goal{ position:absolute; left:0; right:0; z-index:1; border-top:1.5px dashed var(--danger); pointer-events:none; }
+
   .backup-notice{
     display:flex; justify-content:space-between; align-items:center; gap:10px;
     background:var(--accent-soft); border-left:3px solid var(--accent);
@@ -553,6 +563,12 @@
 
     <div class="section-title"><span>直近7日間</span><span class="rule"></span></div>
     <div class="panel" id="weekStatZone"></div>
+
+    <div class="section-title"><span>週ごとの推移（直近8週）</span><span class="rule"></span></div>
+    <div class="panel" id="weekTrendZone"></div>
+
+    <div class="section-title"><span>資格ごとの学習時間（直近30日）</span><span class="rule"></span></div>
+    <div class="panel" id="qualShareZone"></div>
   </section>
 
   <!-- QUALS -->
@@ -1629,8 +1645,72 @@
       return '<div class="stat-row"><div class="dlabel">'+r.label+'</div><div class="track"><i style="width:'+pct+'%;"></i></div><div class="val">'+r.mins+'分</div></div>';
     }).join('');
 
+    renderTrend();
+    renderQualShare();
+
     if(calSelectedDate) renderCalDay();
   }
+  /* ================= CHARTS ================= */
+  function dayKey(offsetDays){
+    var t = new Date();
+    var dt = new Date(t.getFullYear(), t.getMonth(), t.getDate()-offsetDays);
+    return dt.getFullYear()+'-'+pad(dt.getMonth()+1)+'-'+pad(dt.getDate());
+  }
+  // 週ごとの推移：直近7日間を1ブロックとして、8ブロック分を左（古い）→右（今週）で表示
+  function renderTrend(){
+    var tz = document.getElementById('weekTrendZone');
+    if(!tz) return;
+    var weeks = [];
+    for(var w=7; w>=0; w--){
+      var sum = 0;
+      for(var k=0;k<7;k++) sum += minutesOnDate(dayKey(w*7+k));
+      var s = dayKey(w*7+6).split('-');
+      weeks.push({mins:sum, label: w===0 ? '今週' : (parseInt(s[1],10)+'/'+parseInt(s[2],10))});
+    }
+    var goal = Number(settings.weeklyGoalMin) || 0;
+    var total = weeks.reduce(function(a,b){ return a+b.mins; }, 0);
+    if(total===0){
+      tz.innerHTML = '<div style="font-size:12.5px;color:var(--ink-faint);">学習を記録すると、週ごとの推移がここに表示されます。</div>';
+      return;
+    }
+    var scaleMax = Math.max(60, goal, weeks.reduce(function(a,b){ return Math.max(a,b.mins); }, 0));
+    var BAR_MAX = 96; // px
+    var cols = weeks.map(function(wk, i){
+      var h = Math.max(2, Math.round(wk.mins/scaleMax*BAR_MAX));
+      var hours = Math.round(wk.mins/6)/10;
+      return '<div class="col'+(i===weeks.length-1?' cur':'')+'"><div class="v">'+(wk.mins ? hours : '')+'</div><div class="bar" style="height:'+(wk.mins?h:2)+'px;"></div></div>';
+    }).join('');
+    var goalLine = goal ? '<div class="trend-goal" style="bottom:'+Math.round(goal/scaleMax*BAR_MAX)+'px;"></div>' : '';
+    var goalNote = goal ? '<span style="color:var(--danger);font-weight:700;">　点線＝目標 '+(Math.round(goal/6)/10)+'h</span>' : '';
+    var labels = weeks.map(function(wk){ return '<span>'+esc(wk.label)+'</span>'; }).join('');
+    tz.innerHTML = '<div style="font-size:11px;color:var(--ink-faint);margin-bottom:8px;">1週間（直近7日ごと）の学習時間（h）'+goalNote+'</div>'+
+      '<div class="trend-wrap" role="img" aria-label="直近8週の学習時間の推移">'+goalLine+'<div class="trend">'+cols+'</div></div>'+
+      '<div class="trend-labels">'+labels+'</div>';
+  }
+  // 資格ごとの学習時間：直近30日
+  function renderQualShare(){
+    var qz = document.getElementById('qualShareZone');
+    if(!qz) return;
+    var today = new Date(), byQual = {};
+    logs.filter(isLiveLog).forEach(function(l){
+      var d = daysBetween(parseDate(l.date), today);
+      if(d>=0 && d<30) byQual[l.qualId] = (byQual[l.qualId]||0) + l.minutes;
+    });
+    var rows = Object.keys(byQual).map(function(id){ var q = qualById(id); return {name: q ? q.name : '', mins: byQual[id]}; })
+      .filter(function(r){ return r.name && r.mins>0; })
+      .sort(function(a,b){ return b.mins-a.mins; });
+    if(rows.length===0){
+      qz.innerHTML = '<div style="font-size:12.5px;color:var(--ink-faint);">直近30日の記録はまだありません。</div>';
+      return;
+    }
+    var sum = rows.reduce(function(a,b){ return a+b.mins; }, 0), top = rows[0].mins;
+    qz.innerHTML = rows.map(function(r){
+      return '<div style="margin-bottom:10px;"><div class="progress-meta" style="margin:0 0 4px;"><span>'+esc(r.name)+'</span>'+
+        '<span>'+(Math.round(r.mins/6)/10)+'h（'+Math.round(r.mins/sum*100)+'%）</span></div>'+
+        '<div class="progress-bar"><i style="width:'+Math.round(r.mins/top*100)+'%;"></i></div></div>';
+    }).join('');
+  }
+
   function renderCalDay(){
     document.getElementById('calDayLabel').textContent = calSelectedDate ? fmtDateJP(calSelectedDate)+'の記録' : '日付を選択';
     var zone = document.getElementById('calDayZone');

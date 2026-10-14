@@ -492,6 +492,8 @@
 
     <div class="kpi-grid" id="kpiZone"></div>
 
+    <div id="goalZone" style="margin-top:10px;"></div>
+
     <div id="breakdownZone" class="panel" style="display:none;"></div>
 
     <div id="allowanceZone" class="panel" style="display:none;"></div>
@@ -599,6 +601,21 @@
   <button data-view="cal"><span class="ico">📅</span>カレンダー</button>
   <button data-view="quals"><span class="ico">🎓</span>資格</button>
 </nav>
+
+<div class="modal-overlay" id="goalModal">
+  <div class="modal-sheet">
+    <h3>学習時間の目標</h3>
+    <label class="field">1週間の目標（時間）</label>
+    <input type="number" id="goalWeek" min="0" max="168" step="0.5" inputmode="decimal" placeholder="例：7">
+    <label class="field">1か月の目標（時間）</label>
+    <input type="number" id="goalMonth" min="0" max="744" step="1" inputmode="decimal" placeholder="例：30">
+    <div style="font-size:11px;color:var(--ink-faint);margin-top:8px;line-height:1.6;">空欄または0にすると、その目標は表示されません。「今週」は直近7日間の合計です。</div>
+    <div class="modal-close-row">
+      <button class="btn secondary" id="goalCancel">キャンセル</button>
+      <button class="btn accent" id="goalSave">保存する</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-overlay" id="customModal">
   <div class="modal-sheet">
@@ -1292,6 +1309,8 @@
       '<div class="kpi"><div class="n">'+Math.round(monthTotal/6)/10+'</div><div class="l">今月の学習時間（h）</div></div>'+
       '<div class="kpi"><div class="n">'+Math.round(allTotal/6)/10+'</div><div class="l">累計学習時間（h）</div></div>';
 
+    renderGoals(weekTotal, monthTotal);
+
     // per-qualification breakdown
     var bz = document.getElementById('breakdownZone');
     if(bz){
@@ -1937,6 +1956,53 @@
     reader.onerror = function(){ toast('ファイルを読み込めませんでした'); };
     reader.readAsText(file);
     e.target.value = '';
+  });
+
+  /* ---------------- study goals ---------------- */
+  function renderGoals(weekTotal, monthTotal){
+    var gz = document.getElementById('goalZone');
+    if(!gz) return;
+    var wg = Number(settings.weeklyGoalMin) || 0, mg = Number(settings.monthlyGoalMin) || 0;
+    function row(label, total, goal){
+      var pct = Math.min(100, Math.round(total/goal*100));
+      var done = total >= goal;
+      return '<div style="margin-bottom:10px;"><div class="progress-meta" style="margin:0 0 4px;"><span>'+label+'</span>'+
+        '<span>'+(Math.round(total/6)/10)+'h / '+(Math.round(goal/6)/10)+'h'+(done ? ' 達成🎉' : '（'+pct+'%）')+'</span></div>'+
+        '<div class="progress-bar"><i style="width:'+pct+'%;"></i></div></div>';
+    }
+    if(!wg && !mg){
+      gz.innerHTML = '<div class="panel" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">'+
+        '<div style="font-size:12.5px;color:var(--ink-soft);">学習時間の目標を決めると、進み具合がここに表示されます。</div>'+
+        '<button class="btn secondary small" id="goalEditBtn" style="flex-shrink:0;">目標を設定</button></div>';
+    }else{
+      gz.innerHTML = '<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'+
+        '<span style="font-size:12px;font-weight:700;color:var(--ink-soft);">学習の目標</span>'+
+        '<button class="btn secondary small" id="goalEditBtn">変更</button></div>'+
+        (wg ? row('今週（直近7日）', weekTotal, wg) : '')+(mg ? row('今月', monthTotal, mg) : '')+'</div>';
+    }
+    document.getElementById('goalEditBtn').addEventListener('click', openGoalModal);
+  }
+  var goalModal = document.getElementById('goalModal');
+  function openGoalModal(){
+    var wg = Number(settings.weeklyGoalMin) || 0, mg = Number(settings.monthlyGoalMin) || 0;
+    document.getElementById('goalWeek').value = wg ? Math.round(wg/6)/10 : '';
+    document.getElementById('goalMonth').value = mg ? Math.round(mg/6)/10 : '';
+    goalModal.classList.add('open');
+  }
+  document.getElementById('goalCancel').addEventListener('click', function(){ goalModal.classList.remove('open'); });
+  goalModal.addEventListener('click', function(e){ if(e.target===goalModal) goalModal.classList.remove('open'); });
+  document.getElementById('goalSave').addEventListener('click', function(){
+    function toMin(id, maxH){
+      var v = parseFloat(document.getElementById(id).value);
+      if(!isFinite(v) || v<=0) return 0;
+      return Math.round(Math.min(v, maxH)*60);
+    }
+    settings.weeklyGoalMin = toMin('goalWeek', 168);
+    settings.monthlyGoalMin = toMin('goalMonth', 744);
+    persist();
+    goalModal.classList.remove('open');
+    toast('目標を保存しました');
+    renderHome();
   });
 
   /* ---------------- backup reminder ---------------- */
